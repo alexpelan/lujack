@@ -4,6 +4,72 @@ class UsersController < ApplicationController
   # GET /users.json
   def index
     @users = User.all
+    @username = params[:username]
+    done = false
+    max_id = 0
+    favorites = []
+    @counts = Hash.new
+
+		twitter_client = Twitter::REST::Client.new do |config|
+			config.consumer_key    = ENV['CONSUMER_KEY']
+	  	config.consumer_secret = ENV['CONSUMER_SECRET']
+	  	config.access_token = "14293877-TSXLFabpJrMn3VWA2r2icOAI2XYkrpGp404kB4L89"
+	  	config.access_token_secret = "eMlOs4Ja0LAy8cMADq4TwDfRAWUtWGywh4YGRHMtz21bO"
+		end
+ 		
+ 		options = {:count => 200}
+ 		
+ 		while not done
+ 			
+ 			begin
+	 			temp_favorites = twitter_client.favorites(@username, options)
+				favorites = favorites + temp_favorites
+			rescue Twitter::Error::TooManyRequests => error
+				#look them up if we can't find them
+				logger.debug("twitter error")
+				@counts = if File.exists?('counts')
+						File.open('counts') do|file|
+							Marshal.load(file)
+						end
+					else
+						nil
+					end
+				done = true
+			end
+			
+				if temp_favorites.nil?
+					done = true
+				else
+				
+				if max_id == temp_favorites.last.id
+					done = true
+				end
+				
+				max_id = temp_favorites.last.id
+			end
+			
+			options = {:count => 200, :max_id => max_id}
+	
+		end
+		
+		favorites.each do |favorite|
+			if @counts.key?(favorite.user.screen_name.to_s())
+				@counts[favorite.user.screen_name.to_s()] = @counts[favorite.user.screen_name.to_s()] + 1
+			else
+				@counts[favorite.user.screen_name.to_s()] = 1
+			end
+		end
+		
+		@counts = @counts.sort_by{|k,v| v}.reverse
+		
+		if favorites.count > 200 
+			#serialize to a file
+			logger.debug("trying to marshal dump")
+			File.open('counts','wb') do|file|
+				Marshal.dump(@counts,file)
+			end
+		end
+
 
     respond_to do |format|
       format.html # index.html.erb
@@ -43,62 +109,8 @@ class UsersController < ApplicationController
   # POST /users
   # POST /users.json
   def create
-    @user = User.new(params[:user])
-    @username = params[:username]
-    done = false
-    favorites = []
-    counts = Hash.new
-
-		twitter_client = Twitter::REST::Client.new do |config|
-			config.consumer_key    = "a1yCzDsBREuEPHN2bRwVyQ"
-	  	config.consumer_secret = "sL5subSVLU7wtSaEQZSZy6O1lNS8lJeLrI7Nuj0NY"
-	  	config.access_token = "14293877-TSXLFabpJrMn3VWA2r2icOAI2XYkrpGp404kB4L89"
-	  	config.access_token_secret = "eMlOs4Ja0LAy8cMADq4TwDfRAWUtWGywh4YGRHMtz21bO"
-		end
- 		
- 		if(!@username.nil?)
- 			logger.debug("user = " + @username)
- 		end
- 		
- 		options = {:count => 200}
- 		
- 		while not done
- 			
- 			begin
-	 			temp_favorites = twitter_client.favorites(@username, options)
-				favorites = favorites + temp_favorites
-			rescue Twitter::Error::TooManyRequests => error
-				logger.debug("twitter error")
-				done = true
-			end
-			
-			if temp_favorites.nil?
-				done = true
-				logger.debug("temp favs is null")
-			else
-				logger.debug("temp faves is not null")
-				max_id = temp_favorites.last.id
-				logger.debug("max id = " + max_id.to_s())
-			end
-			
-			options = {:count => 200, :max_id => max_id}
-	
-		end
-		
-		favorites.each do |favorite|
-			if counts.key?(favorite.user.screen_name.to_s())
-				logger.debug("found user already here: " + favorite.user.screen_name.to_s())
-				counts[favorite.user.screen_name.to_s()] = counts[favorite.user.screen_name.to_s()] + 1
-			else
-				counts[favorite.user.screen_name.to_s()] = 1
-				logger.debug("found new user " + favorite.user.screen_name.to_s())
-			end
-		end
-		
-		counts.each do |username, count|
-			logger.debug("@"+ username.to_s() + " " + count.to_s())
-		end
-
+ 	  @user = User.new(params[:user])
+ 
     respond_to do |format|
       #if @user.save
         format.html { redirect_to @user, notice: 'User was successfully created.' }

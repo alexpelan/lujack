@@ -8,6 +8,8 @@ gem 'rails', '3.2.11'
 gem 'pg'
 
 gem 'twitter'
+gem 'omniauth'
+gem 'omniauth-twitter'
 
 # Gems used only for assets and not required
 # in production environments by default.

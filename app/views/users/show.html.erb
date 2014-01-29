@@ -1,20 +1,16 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <b>Username:</b>
-  <%= @user.username %>
-</p>
+<table>
+<tr>
+<th>Username</th>
+<th>Favorited</th>
+</tr>
 
-<p>
-  <b>Bio:</b>
-  <%= @user.bio %>
-</p>
+<% @counts.each do |username, count| %>
+	<tr>
+		<td> <%= username %> </td>
+		<td> <%= count %> </td>
+	</tr>
+<% end %>
 
-<p>
-  <b>Avatar url:</b>
-  <%= @user.avatar_url %>
-</p>
-
-
-<%= link_to 'Edit', edit_user_path(@user) %> |
-<%= link_to 'Back', users_path %>
+</table>

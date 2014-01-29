@@ -1,0 +1,24 @@
+<%= form_tag("/tweet", method: "get") do %>
+	<%= text_area_tag 'tweet', @tweet_string %>
+	<%= submit_tag("Tweet your results") %>
+<% end %>
+
+<table>
+<tr>
+<th>Username</th>
+<th>Favorited</th>
+<th>Profile picture</th>
+<th>Bio</th>
+</tr>
+
+
+<% @counts.each do |username, count| %>
+	<tr>
+		<td> <%= username %> </td>
+		<td> <%= count %> </td>
+		<td> <%= image_tag @users[username].profile_image_uri %> </td>
+		<td> <%= @users[username].description %> </td>
+	</tr>
+<% end %>
+
+</table>
