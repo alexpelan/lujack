@@ -1,7 +1,12 @@
-<h1>My favorite tweeters</h1>
+<div class="container"> 
 
-<%= form_tag("/auth/twitter", method: "get") do %>
+	<div class="hero-unit"> 
+	
+		<h1>My favorite tweeters</h1>
+		
+		<p>See the twitter users whose tweets you've favorited the most.</p>
+		
+		<p><a href="/auth/twitter" class="btn btn-primary">Sign in with Twitter</a></p>
 
-Sign in with twitter by clicking on this button -> <%= submit_tag("Log in with Twitter") %>
-
-<% end %>
+	</div>
+</div>

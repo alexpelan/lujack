@@ -8,7 +8,7 @@
 <th>Username</th>
 <th>Favorited</th>
 <th>Profile picture</th>
-<th>Bio</th>
+<th>Sample tweet</th>
 </tr>
 
 
@@ -17,7 +17,7 @@
 		<td> <%= username %> </td>
 		<td> <%= count %> </td>
 		<td> <%= image_tag @users[username].profile_image_uri %> </td>
-		<td> <%= @users[username].description %> </td>
+		<td width="500px"> <%= @tweets[username].html_safe %> </td>
 	</tr>
 <% end %>
 

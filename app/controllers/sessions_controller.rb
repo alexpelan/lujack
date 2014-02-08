@@ -20,15 +20,19 @@ class SessionsController < ApplicationController
       @user = client.user(include_entities: true)
 		end
 			
+		logger.debug("testing")
 		@users = Hash.new
     @username = "alexpelan" #params[:username] - hardcoded for now
     done = false
     max_id = 0
     favorites = []
     @counts = Hash.new
+    @tweets = Hash.new
     finishearly = true
+    count= 0 
  		
- 		options = {:count => 200}
+ 		options = {:count => 10}
+ 		oembed_options = {:hide_media => true, :hide_thread => true}
  		
  		while not done
  			
@@ -59,21 +63,36 @@ class SessionsController < ApplicationController
 				max_id = temp_favorites.last.id
 			end
 			
-			#REMOVE ME after testing
-			#if finishearly == true
-			#	done = true
-			#end
+			#REMOVE ME after testing. 
+			if finishearly == true
+				done = true
+			end
 			
 			options = {:count => 200, :max_id => max_id}
 	
 		end
 		
+		oembedone = false
+		
 		favorites.each do |favorite|
+			count = count + 1
+			logger.debug("count = " + count.to_s())
+		
 			if @counts.key?(favorite.user.screen_name.to_s())
+				#25% of the time, swap out the tweet with this one. Not actually random.
+				random_number = Random.new.rand(0..1)
+				
+				if random_number > (0.25)
+						tweet = client.oembed(favorite.id,oembed_options) 
+						@tweets[favorite.user.screen_name.to_s()] = tweet.html
+				end
+				
 				@counts[favorite.user.screen_name.to_s()] = @counts[favorite.user.screen_name.to_s()] + 1
 			else
 				@counts[favorite.user.screen_name.to_s()] = 1
 				@users[favorite.user.screen_name.to_s()] = favorite.user
+				tweet = client.oembed(favorite.id,oembed_options)
+				@tweets[favorite.user.screen_name.to_s()] = tweet.html
 			end
 		end
 		
