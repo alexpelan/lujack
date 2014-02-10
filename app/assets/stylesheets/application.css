@@ -12,3 +12,11 @@
  *= require_tree .
  *= require bootstrap_and_overrides
  */
+ 
+body{
+	padding-top: 40px;	
+}
+
+#tweet{
+	width: 750px;	
+}

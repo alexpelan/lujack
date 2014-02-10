@@ -1,24 +1,31 @@
-<%= form_tag("/tweet", method: "get") do %>
-	<%= text_area_tag 'tweet', @tweet_string %>
-	<%= submit_tag("Tweet your results") %>
-<% end %>
+<div class="container">
 
-<table>
-<tr>
-<th>Username</th>
-<th>Favorited</th>
-<th>Profile picture</th>
-<th>Sample tweet</th>
-</tr>
+	<%= form_tag("/tweet", method: "get", class: "form-inline") do %>
+		<%= text_field_tag "tweet", @tweet_string %>
+		<button type="submit" class="btn btn-primary">Tweet your results</button>
+	<% end %>
+	
+	<table class="table table-hover">
+		<tr>
+			<th>Username</th>
+			<th>Favorited</th>
+			<th>Sample tweet</th>
+		</tr>
+	 
+	
+	
+		<% @counts.each do |username, count| %>
+			<tr>
+				<td> @<%= username %> </td>
+				<td> <%= count %> </td>
+				<td> 
+					<% if @tweet_htmls[username] %>
+						<%= @tweet_htmls[username].html_safe  %>
+					<% end %> 
+				</td>
+			</tr>
+		<% end %>
+	
+	</table>
 
-
-<% @counts.each do |username, count| %>
-	<tr>
-		<td> <%= username %> </td>
-		<td> <%= count %> </td>
-		<td> <%= image_tag @users[username].profile_image_uri %> </td>
-		<td width="500px"> <%= @tweets[username].html_safe %> </td>
-	</tr>
-<% end %>
-
-</table>
+</div>
