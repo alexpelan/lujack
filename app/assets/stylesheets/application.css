@@ -14,9 +14,46 @@
  */
  
 body{
-	padding-top: 40px;	
+	padding-top: 60px;	
 }
 
 #tweet{
 	width: 750px;	
+}
+
+.embedded_tweet{
+	float: left;
+	width: 500px;	
+}
+
+.user_details{
+	padding-top: 20px;	
+}
+
+.favorite_user_list div{
+	margin: 20px;	
+}
+
+.favorite_user_list ul{
+	list-style-type: none
+	width: 500px;	
+}
+
+h3 {
+	font: bold 20px/1.5 Helvetica, Verdana, sans-serif;	
+}
+
+.favorite_user_list li p{
+	font: 200 12px/1.5 Georgia, Times New Roman, serif;
+}
+
+.favorite_user_list li {
+	padding: 10px;
+	overflow: auto;	
+	list-style-type: none;
+}
+
+li:hover{
+	background: #eee;
+	cursor: pointer;
 }

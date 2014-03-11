@@ -5,27 +5,32 @@
 		<button type="submit" class="btn btn-primary">Tweet your results</button>
 	<% end %>
 	
-	<table class="table table-hover">
-		<tr>
-			<th>Username</th>
-			<th>Favorited</th>
-			<th>Sample tweet</th>
-		</tr>
+	<table class="table table-hover"></table>
 	 
+	<div class="results">
+		<ul class="favorite_user_list">
+			<% @counts.each_with_index do |(username, count), index| %>
+				<li class="favorite_user_list">
+					<% if index<10  %>
+						<div class="embedded_tweet">
+							<% if @tweet_htmls[username] %>
+								<%= @tweet_htmls[username].html_safe  %>
+							<% end %> 
+						</div>
+						<div class="user_details">
+					 		<h3 class="favorite_user_list"> <%= index+1 %>. @<%= username %> </h3>
+					 		<p>Favorited <%= count %>x
+					 	</div>
+					
+					<% else %>
+						<p> <strong> <%= index+1 %>. @<%= username %></strong> - Favorited <%= count %>x </p>
+					<% end %>
+				</li>
+			
+			<% end %>
+		</ul>
+	</div>
 	
-	
-		<% @counts.each do |username, count| %>
-			<tr>
-				<td> @<%= username %> </td>
-				<td> <%= count %> </td>
-				<td> 
-					<% if @tweet_htmls[username] %>
-						<%= @tweet_htmls[username].html_safe  %>
-					<% end %> 
-				</td>
-			</tr>
-		<% end %>
-	
-	</table>
+	<table></table>
 
 </div>
