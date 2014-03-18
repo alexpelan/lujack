@@ -11,6 +11,21 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 0) do
+ActiveRecord::Schema.define(:version => 20140313042201) do
+
+  create_table "lujack_users", :force => true do |t|
+    t.string   "twitter_usename"
+    t.time     "instant_of_update"
+    t.datetime "created_at",        :null => false
+    t.datetime "updated_at",        :null => false
+  end
+
+  create_table "twitter_users", :force => true do |t|
+    t.string   "username"
+    t.string   "random_tweet_html"
+    t.datetime "created_at",        :null => false
+    t.datetime "updated_at",        :null => false
+    t.integer  "favorite_count"
+  end
 
 end

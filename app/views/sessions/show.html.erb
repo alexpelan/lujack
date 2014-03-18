@@ -9,21 +9,21 @@
 	 
 	<div class="results">
 		<ul class="favorite_user_list">
-			<% @counts.each_with_index do |(username, count), index| %>
+			<% @favorite_users.each_with_index do |favorite_user, index| %>
 				<li class="favorite_user_list">
 					<% if index<10  %>
 						<div class="embedded_tweet">
-							<% if @tweet_htmls[username] %>
-								<%= @tweet_htmls[username].html_safe  %>
+							<% if favorite_user.username %>
+								<%= favorite_user.random_tweet_html.html_safe  %>
 							<% end %> 
 						</div>
 						<div class="user_details">
-					 		<h3 class="favorite_user_list"> <%= index+1 %>. @<%= username %> </h3>
-					 		<p>Favorited <%= count %>x
+					 		<h3 class="favorite_user_list"> <%= index+1 %>. @<%= favorite_user.username %> </h3>
+					 		<p>Favorited <%= favorite_user.favorite_count %>x
 					 	</div>
 					
 					<% else %>
-						<p> <strong> <%= index+1 %>. @<%= username %></strong> - Favorited <%= count %>x </p>
+						<p> <strong> <%= index+1 %>. @<%= favorite_user.username %></strong> - Favorited <%= favorite_user.favorite_count %>x </p>
 					<% end %>
 				</li>
 			
