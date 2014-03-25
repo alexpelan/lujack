@@ -67,10 +67,6 @@ class LujackUser < ActiveRecord::Base
 		
   	self.favorite_users = favorite_users
   	
-  	if (self.favorite_users.nil?)
-  		logger.debug("favorite users is nil while loading from api")
-  	end
-  	
   end
   
   def sort_favorite_users(favorites)
@@ -109,19 +105,6 @@ class LujackUser < ActiveRecord::Base
 		return favorite_users
   end
  
- 	def load_lujack_user_from_database
- 		#what happens if they change their username? I guess we'll just create a new entry for now
- 		lujack_user = LujackUser.find_by_twitter_username("alexpelan") #self.twitter_username)
- 		
- 		if lujack_user.nil?
- 			return nil
- 		else
- 			logger.debug("this happened = " + self.inspect)
- 			self.favorite_users = TwitterUser.where(lujack_user_id = 1)
- 			return lujack_user
- 		end
-
- 	end
   
   def save_to_database
  
