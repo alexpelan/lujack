@@ -19,12 +19,19 @@ class SessionsController < ApplicationController
     if session['access_token'] && session['access_token_secret']
       @user = client.user(include_entities: true)
 		end
+				
+		@lujack_user = LujackUser.find_by_twitter_username("alexpelan")
 		
+		if not @lujack_user.nil?
+			@favorite_users = TwitterUser.find_all_by_lujack_user_id(@lujack_user.id)
+		else
+			@lujack_user.save  #this gives it an id
+		  @lujack_user.load_lujack_user_from_api(client)	
+		  @favorite_users = @lujack_user.favorite_users
+			@lujack_user.save_to_database() 		
+		end	
 		
-		@lujack_user = LujackUser.new
-		@lujack_user.twitter_usename = @user.screen_name.to_s() #TODO: migrate usename to username, lol
-		@favorite_users = @lujack_user.load_favorite_users(client)	
-    @tweet_string = "Temporarily out of service"		
+    @tweet_string = @lujack_user.craft_tweet_string()
 
     respond_to do |format|
       format.html # index.html.erb
