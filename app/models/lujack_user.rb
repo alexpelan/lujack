@@ -105,6 +105,15 @@ class LujackUser < ActiveRecord::Base
 		return favorite_users
   end
  
+ 	def is_up_to_date?
+ 
+ 		if self.updated_at < 7.days.ago
+ 			return false
+ 		else
+ 			return true
+ 		end
+ 		
+ 	end	
   
   def save_to_database
  

@@ -19,12 +19,17 @@ class SessionsController < ApplicationController
     if session['access_token'] && session['access_token_secret']
       @user = client.user(include_entities: true)
 		end
-				
+			
 		@lujack_user = LujackUser.find_by_twitter_username("alexpelan")
 		
 		if not @lujack_user.nil?
+			lujack_user_up_to_date = @lujack_user.is_up_to_date?
+		end
+		
+		if lujack_user_up_to_date
 			@favorite_users = TwitterUser.find_all_by_lujack_user_id(@lujack_user.id)
 		else
+			logger.debug("not up to date :_((")
 			@lujack_user.save  #this gives it an id
 		  @lujack_user.load_lujack_user_from_api(client)	
 		  @favorite_users = @lujack_user.favorite_users
