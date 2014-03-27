@@ -124,14 +124,12 @@ class LujackUser < ActiveRecord::Base
  	
   end
   
-  def craft_tweet_string
+  def craft_tweet_string(favorite_users)
+  
   	#you don't just write a tweet, you CRAFT a tweet
-  	return "Temporarily out of service"
-  	
-  		
-		#this appears to have changed my hash to an array - weird, but I'm rolling with it
-		#@tweet_string = "My favorite tweeters are @" + @counts[0][0].to_s()  + ", @" + @counts[1][0] + ", and @" + @counts[2][0]  + ". Check out yours at lujack.herokuapp.com"
-  	
+		tweet_string = "My favorite tweeters are @" + favorite_users[0].username  + ", @" + favorite_users[1].username + ", and @" + favorite_users[2].username + ". Check out yours at lujack.herokuapp.com"
+		return tweet_string
+ 
   end
   
 end

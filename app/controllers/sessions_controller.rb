@@ -27,16 +27,17 @@ class SessionsController < ApplicationController
 		end
 		
 		if lujack_user_up_to_date
-			@favorite_users = TwitterUser.find_all_by_lujack_user_id(@lujack_user.id)
+			@favorite_users = TwitterUser.where(lujack_user_id: @lujack_user.id).order("favorite_count DESC").all()
 		else
-			logger.debug("not up to date :_((")
+			@lujack_user = LujackUser.new
+			@lujack_user.twitter_username = "alexpelan"
 			@lujack_user.save  #this gives it an id
 		  @lujack_user.load_lujack_user_from_api(client)	
 		  @favorite_users = @lujack_user.favorite_users
 			@lujack_user.save_to_database() 		
 		end	
 		
-    @tweet_string = @lujack_user.craft_tweet_string()
+    @tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
 
     respond_to do |format|
       format.html # index.html.erb
