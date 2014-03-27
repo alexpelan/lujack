@@ -13,6 +13,9 @@ class LujackUser < ActiveRecord::Base
     finishearly = true
     oembed_options = {:hide_media => true, :hide_thread => true}
  		options = {:count => 40}
+ 		
+ 		#first, clear out our previous twitter_users - this avoids dupes and keeps thing sorted
+ 		clear_previous_twiter_users
   
   	while not done
   		begin
@@ -114,6 +117,15 @@ class LujackUser < ActiveRecord::Base
  		end
  		
  	end	
+  
+  def clear_previous_twitter_users
+  	twitter_users = TwitterUser.find_all_by_lujack_id(self.id)
+  	
+  	twitter_users.each do |twitter_user|
+  		twitter_user.destroy
+  	end
+  
+  end	
   
   def save_to_database
  
