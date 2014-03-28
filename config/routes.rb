@@ -1,7 +1,7 @@
 Lujack::Application.routes.draw do
 	get "welcome/index"
 	get '/auth/twitter/callback', to: 'sessions#create', as: 'callback'
-	get '/profile', to: 'sessions#show', as: 'show'
+	get '/profile(/:username)', to: 'sessions#show', as: 'show'
 	get '/tweet', to: 'sessions#tweet', as: 'tweet'
 
   resources :users
