@@ -5,9 +5,10 @@ $(document).ready(function(){
 });
 	
 function loadFavoriteUsers(){
-	alert("this is happening");
+	var username = $("#results").attr("username");
+	var request_url = "/results/" + username + ".js"
 	$.ajax({
 			type: "GET",
-			url: "/profile/alexpelan.js"
+			url: request_url
 	});
 }

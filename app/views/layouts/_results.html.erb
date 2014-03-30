@@ -1,0 +1,26 @@
+<%= form_tag("/tweet", method: "get", class: "form-inline") do %>
+	<%= text_field_tag "tweet", @tweet_string %>
+	<button type="submit" class="btn btn-primary">Tweet your results</button>
+<% end %>
+
+<ul class="favorite_user_list">
+	<% @favorite_users.each_with_index do |favorite_user, index| %>
+		<li class="favorite_user_list">
+			<% if index<10  %>
+				<div class="embedded_tweet">
+					<% if favorite_user.username %>
+						<%= favorite_user.random_tweet_html.html_safe  %>
+					<% end %> 
+				</div>
+				<div class="user_details">
+			 		<h3 class="favorite_user_list"> <%= index+1 %>. @<%= favorite_user.username %> </h3>
+			 		<p>Favorited <%= favorite_user.favorite_count %>x
+			 	</div>
+			
+			<% else %>
+				<p> <strong> <%= index+1 %>. @<%= favorite_user.username %></strong> - Favorited <%= favorite_user.favorite_count %>x </p>
+			<% end %>
+		</li>
+	
+	<% end %>
+</ul>

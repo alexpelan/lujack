@@ -15,17 +15,17 @@ class SessionsController < ApplicationController
 		redirect_to show_path
 	end
 
-  def show
-    if session['access_token'] && session['access_token_secret']
+	def results
+		if session['access_token'] && session['access_token_secret']
       user = client.user(include_entities: true)
-      username = user.screen_name
+      @username = user.screen_name
       user_is_authenticated = true
     else
-    	username = params[:username]
+    	@username = params[:username]
     	user_is_authenticated = false
 		end
 			
-		@lujack_user = LujackUser.find_by_twitter_username(username)
+		@lujack_user = LujackUser.find_by_twitter_username(@username)
 		
 		if not @lujack_user.nil?
 			lujack_user_up_to_date = @lujack_user.is_up_to_date?
@@ -35,7 +35,7 @@ class SessionsController < ApplicationController
 			@favorite_users = TwitterUser.where(lujack_user_id: @lujack_user.id).order("favorite_count DESC").all()
 		elsif user_is_authenticated 
 			@lujack_user = LujackUser.new
-			@lujack_user.twitter_username = username
+			@lujack_user.twitter_username = @username
 			@lujack_user.save  #this gives it an id
 		  @lujack_user.load_lujack_user_from_api(client)	
 		  @favorite_users = @lujack_user.favorite_users
@@ -45,8 +45,11 @@ class SessionsController < ApplicationController
     @tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
 
     respond_to do |format|
-      format.html # index.html.erb
-      format.json { render json: @users }
+      format.js  
     end
+	end
+
+  def show
+		@username = params[:username]
   end
 end
