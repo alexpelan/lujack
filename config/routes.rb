@@ -4,6 +4,7 @@ Lujack::Application.routes.draw do
 	get '/profile(/:username)', to: 'sessions#show', as: 'show'
 	get '/tweet', to: 'sessions#tweet', as: 'tweet'
 	get '/results(/:username)', to: 'sessions#results', as: 'results'
+	get '/progress/:username', to: 'sessions#progress', as: 'progress'
 
   resources :users
    

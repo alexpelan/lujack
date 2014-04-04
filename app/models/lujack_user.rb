@@ -1,7 +1,6 @@
 class LujackUser < ActiveRecord::Base
-  attr_accessible :instant_of_update, :twitter_username #TODO: instant_of_update is redundant with built in activerecord functionality
+  attr_accessible :twitter_username
   attr_accessor :favorite_users
-  serialize :favorite_users, Array
   has_many :twitter_users
     
   def load_lujack_user_from_api(client)
@@ -10,16 +9,20 @@ class LujackUser < ActiveRecord::Base
     favorites = []
     twitter_error_occurred = false
     favorite_users = Array.new
+    favorite_count = 0
     finishearly = true
     oembed_options = {:hide_media => true, :hide_thread => true}
  		options = {:count => 40}
  		
- 		#first, clear out our previous twitter_users - this avoids dupes and keeps thing sorted
- 		clear_previous_twiter_users
+ 		#first, clear out our previous foreign keylinks
+ 		clear_previous_twitter_users
   
   	while not done
   		begin
 	 			temp_favorites = client.favorites(self.twitter_username, options)
+	 			if favorite_count == 0
+	 				#@loading_progress.total_tweets = client.favorite_count(self.twitter_username)
+	 			end
 				favorites = favorites + temp_favorites
 			rescue Twitter::Error::TooManyRequests => error
 				#We're done here. Perhaps eventually flip back to the app reserve of request?
@@ -45,6 +48,8 @@ class LujackUser < ActiveRecord::Base
 			end
 			
 			options = {:count => 200, :max_id => max_id}
+			#@loading_progress.tweets_loaded = favorites.count
+			#@loading_progress.save
 			
 		end
 		
@@ -69,6 +74,8 @@ class LujackUser < ActiveRecord::Base
 		end
 		
   	self.favorite_users = favorite_users
+  	#@loading_progress.is_finished = true
+  	
   	
   end
   
@@ -119,7 +126,7 @@ class LujackUser < ActiveRecord::Base
  	end	
   
   def clear_previous_twitter_users
-  	twitter_users = TwitterUser.find_all_by_lujack_id(self.id)
+  	twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
   	
   	twitter_users.each do |twitter_user|
   		twitter_user.destroy
