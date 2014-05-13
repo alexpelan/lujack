@@ -11,6 +11,9 @@ gem 'twitter'
 gem 'omniauth'
 gem 'omniauth-twitter'
 gem 'twitter-bootstrap-rails'
+group :development do
+	gem 'quiet_assets', '~> 1.0.2'
+end
 
 # Gems used only for assets and not required
 # in production environments by default.

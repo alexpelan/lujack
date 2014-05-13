@@ -1,68 +1,104 @@
 class LujackUser < ActiveRecord::Base
   attr_accessible :twitter_username
-  attr_accessor :favorite_users
+  attr_accessor :favorite_users, :max_id
   has_many :twitter_users
-    
-  def load_lujack_user_from_api(client)
-  	done = false
+  has_many :tweets
+  
+  #get number_of_tweets favorites
+  #save to database
+  #return true if there aren't any tweets left  
+  def incremental_load_tweets(client, number_of_tweets)
     max_id = 0
     favorites = []
     twitter_error_occurred = false
     favorite_users = Array.new
-    favorite_count = 0
-    finishearly = true
-    oembed_options = {:hide_media => true, :hide_thread => true}
- 		options = {:count => 40}
- 		
- 		#first, clear out our previous foreign keylinks
- 		clear_previous_twitter_users
-  
-  	while not done
-  		begin
-	 			temp_favorites = client.favorites(self.twitter_username, options)
-	 			if favorite_count == 0
-	 				#@loading_progress.total_tweets = client.favorite_count(self.twitter_username)
-	 			end
-				favorites = favorites + temp_favorites
-			rescue Twitter::Error::TooManyRequests => error
-				#We're done here. Perhaps eventually flip back to the app reserve of request?
-				done = true
-				twitter_error_occurred = true
-			end
-			
-				if temp_favorites.nil?
-					done = true
-				else
-				
-					if not temp_favorites.last.nil?
-						if max_id == temp_favorites.last.id
-							done = true
-						end
-						max_id = temp_favorites.last.id
-					end
-				end
-			
-			#REMOVE ME after testing. 
-			if finishearly == true
-				done = true
-			end
-			
-			options = {:count => 200, :max_id => max_id}
-			#@loading_progress.tweets_loaded = favorites.count
-			#@loading_progress.save
-			
+    loaded_all_tweets = false
+ 		options = {:count => number_of_tweets}
+ 		options = {:count => 40} #TODO: delete me later
+ 		 
+ 		begin
+ 			favorites = client.favorites(self.twitter_username, options)
+		rescue Twitter::Error::TooManyRequests => error
+			#We're done here. Perhaps eventually flip back to the app reserve of request?
+			twitter_error_occurred = true
 		end
 		
-		oembedone = false
+		if favorites.nil?
+			loaded_all_tweets = true
+		else
 		
-		favorite_users = sort_favorite_users(favorites)
+			if not favorites.last.nil?
+				if self.max_id == favorites.last.id
+					loaded_all_tweets = true
+				end
+				self.max_id = favorites.last.id
+			end
+		end
+		
+		save_tweets(favorites)
+		
+		return loaded_all_tweets
+	end
+	
+	def save_tweets(tweets)
+	
+		tweets.each do |tweet|
+			tweet_database_object = self.tweets.build
+			tweet_database_object.username = tweet.user.screen_name.to_s()
+			tweet_database_object.tweet_id = tweet.id.to_s
+			tweet_database_object.save
+		end
+	
+	end
+		 
+  def calculate_favorite_users(client)
+  	favorites = []
+  	favorites = Tweet.find_all_by_lujack_user_id(self.id)
+  
+  
+  	username_to_twitter_user_hash = Hash.new
+  				
+  	favorites.each do |favorite|		
+  		
+  		username = favorite.username
+  	
+			if username_to_twitter_user_hash.key?(username)
+			
+				twitter_user = username_to_twitter_user_hash[username]
+				#25% of the time, swap out the tweet with this one. Not actually random.
+				random_number = Random.new.rand(0..1)
+				
+				if random_number > (0.25)
+						twitter_user.random_tweet_id = favorite.tweet_id.to_s
+				end
+				
+				twitter_user.favorite_count = twitter_user.favorite_count + 1
+			else
+				twitter_user = self.twitter_users.build
+				twitter_user.username = username
+				twitter_user.random_tweet_id = favorite.tweet_id.to_s
+				twitter_user.favorite_count = 1
+				username_to_twitter_user_hash[username] = twitter_user
+			end		
+		end
+		
+		favorite_users = sort_favorite_users(username_to_twitter_user_hash)
+		self.favorite_users = find_random_tweets(client, favorite_users)
+		
+		return self.favorite_users
+	end
+	
+	def find_random_tweets(client, favorite_users)
+		oembed_options = {:hide_media => true, :hide_thread => true}
+		twitter_error_occurred = false
 		
 		#the top ten users get a sample tweet - we limit to ten to keep our oembed requests down (doing it for all tweets would go over our rate limit more often than not)
 		for i in 0..9 do
 		
 			favorite_user = favorite_users[i]
 			username = favorite_user.username
-			tweet_id = favorite_user.random_tweet_html
+			tweet_id = favorite_user.random_tweet_id
+			logger.debug("tweet id = " + tweet_id.to_s + " user = " + username.to_s)
 			
 			if not twitter_error_occurred == true
 				begin
@@ -73,40 +109,10 @@ class LujackUser < ActiveRecord::Base
 			end
 		end
 		
-  	self.favorite_users = favorite_users
-  	#@loading_progress.is_finished = true
-  	
-  	
-  end
-  
-  def sort_favorite_users(favorites)
-  	username_to_twitter_user = Hash.new
-  				
-  	favorites.each do |favorite|		
-  		
-  		username = favorite.user.screen_name.to_s()
-  	
-			if username_to_twitter_user.key?(username)
-			
-				twitter_user = username_to_twitter_user[username]
-				#25% of the time, swap out the tweet with this one. Not actually random.
-				random_number = Random.new.rand(0..1)
-				
-				if random_number > (0.25)
-						twitter_user.random_tweet_html = favorite.id  #kind of odd, but we set an id here, then swap it out for the HTML later. The only reason we just save the id is to lower the amount of oembed calls to the twitter api
-				end
-				
-				twitter_user.favorite_count = twitter_user.favorite_count + 1
-			else
-				twitter_user = self.twitter_users.build
-				twitter_user.username = username
-				twitter_user.random_tweet_html = favorite.id
-				twitter_user.favorite_count = 1
-				username_to_twitter_user[username] = twitter_user
-			end
-			
-			
-		end
+		return favorite_users
+	end
+	
+	def sort_favorite_users(username_to_twitter_user)
 		
 		#sort the twitter_user objects by favorite_count
 		favorite_users = username_to_twitter_user.values

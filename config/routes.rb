@@ -1,17 +1,11 @@
 Lujack::Application.routes.draw do
-	get "welcome/index"
+	get '/welcome/index', to: 'welcome#index', as: 'index'
 	get '/auth/twitter/callback', to: 'sessions#create', as: 'callback'
 	get '/profile(/:username)', to: 'sessions#show', as: 'show'
 	get '/tweet', to: 'sessions#tweet', as: 'tweet'
-	get '/results(/:username)', to: 'sessions#results', as: 'results'
-	get '/progress/:username', to: 'sessions#progress', as: 'progress'
-
-  resources :users
-   
-	controller :users do
-		get 'users' => :new
-		post 'users' => :list
-	end
+	get '/find_or_create_user(/:username)', to: 'sessions#find_or_create_user', as: 'find_or_create_user'
+	get '/incremental_load_tweets/:number_of_tweets', to: 'sessions#incremental_load_tweets', as: 'incremental_load_tweets'
+	get 'finalize', to: 'sessions#finalize', as: 'finalize'
 
   root :to => 'welcome#index'
 

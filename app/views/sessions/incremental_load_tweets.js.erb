@@ -1,0 +1,12 @@
+var tweets_loaded = "<%= @tweets_loaded %>";
+var total_tweets = "<%= @total_tweets %>";
+console.log("this is happening");
+updateLoadingBarProgress(tweets_loaded, total_tweets);
+<% if @done %>
+	console.log("done");
+	finalize();
+<% else %>
+	console.log("not done");
+	incrementalLoadTweets(200); 
+<% end %> 
+//all functions called from here live in sessions.js

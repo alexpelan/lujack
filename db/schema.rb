@@ -11,22 +11,32 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140326014513) do
+ActiveRecord::Schema.define(:version => 20140513221356) do
 
   create_table "lujack_users", :force => true do |t|
     t.string   "twitter_username"
-    t.datetime "created_at",       :null => false
-    t.datetime "updated_at",       :null => false
+    t.datetime "created_at",                    :null => false
+    t.datetime "updated_at",                    :null => false
     t.text     "favorite_users"
+    t.integer  "max_id",           :limit => 8
+  end
+
+  create_table "tweets", :force => true do |t|
+    t.string   "username"
+    t.integer  "lujack_user_id"
+    t.datetime "created_at",                  :null => false
+    t.datetime "updated_at",                  :null => false
+    t.integer  "tweet_id",       :limit => 8
   end
 
   create_table "twitter_users", :force => true do |t|
     t.string   "username"
     t.text     "random_tweet_html"
-    t.datetime "created_at",        :null => false
-    t.datetime "updated_at",        :null => false
+    t.datetime "created_at",                     :null => false
+    t.datetime "updated_at",                     :null => false
     t.integer  "favorite_count"
     t.integer  "lujack_user_id"
+    t.integer  "random_tweet_id",   :limit => 8
   end
 
 end
