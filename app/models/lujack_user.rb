@@ -1,6 +1,6 @@
 class LujackUser < ActiveRecord::Base
   attr_accessible :twitter_username
-  attr_accessor :favorite_users, :max_id
+  attr_accessor :favorite_users
   has_many :twitter_users
   has_many :tweets
   
@@ -8,13 +8,19 @@ class LujackUser < ActiveRecord::Base
   #save to database
   #return true if there aren't any tweets left  
   def incremental_load_tweets(client, number_of_tweets)
-    max_id = 0
     favorites = []
     twitter_error_occurred = false
     favorite_users = Array.new
     loaded_all_tweets = false
- 		options = {:count => number_of_tweets}
- 		options = {:count => 40} #TODO: delete me later
+    
+    if not self.max_id.nil?
+	 	#	options = {:count => number_of_tweets, :max_id => self.max_id}
+	 		options = {:count => 40, :max_id => self.max_id} #TODO: delete me later
+	 	else
+ 		# 	options = {:count => number_of_tweets}
+ 		 	options = {:count => 40} #TODO: delete me later
+ 		end
+ 		
  		 
  		begin
  			favorites = client.favorites(self.twitter_username, options)
@@ -31,8 +37,12 @@ class LujackUser < ActiveRecord::Base
 				if self.max_id == favorites.last.id
 					loaded_all_tweets = true
 				end
-				self.max_id = favorites.last.id
+
 			end
+		end
+		
+		if not favorites.last.nil?
+			self.max_id = favorites.last.id
 		end
 		
 		save_tweets(favorites)
@@ -98,7 +108,6 @@ class LujackUser < ActiveRecord::Base
 			favorite_user = favorite_users[i]
 			username = favorite_user.username
 			tweet_id = favorite_user.random_tweet_id
-			logger.debug("tweet id = " + tweet_id.to_s + " user = " + username.to_s)
 			
 			if not twitter_error_occurred == true
 				begin

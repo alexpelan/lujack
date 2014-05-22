@@ -55,7 +55,6 @@ class SessionsController < ApplicationController
 		id = @lujack_user.id
 		session[:id] = id
 		session[:tweets_loaded] = 0
-		logger.debug("tweets loaded = " + session[:tweets_loaded].to_s)
 		session[:total_tweets] = total_tweets
 		
 		respond_to do |format|
@@ -70,33 +69,24 @@ class SessionsController < ApplicationController
 		number_of_tweets = params[:number_of_tweets]
 		@total_tweets = session[:total_tweets]
 		#load user from database. PANIC if we can't find it
-		logger.debug("1")
 		begin
 			@lujack_user = 	LujackUser.find(session[:id])
 		rescue ActiveRecord::RecordNotFound
-			logger.debug("something horrible happened!")
 			@something_horrible_happened = true
 			return
 		end
-		logger.debug("2")
-		#load <number_of_tweets> tweets
+
 		loaded_all_tweets = @lujack_user.incremental_load_tweets(client, number_of_tweets)
 		
 		#save state to the session
-		logger.debug("tweets loaded bef =" + session[:tweets_loaded].to_s)
-		logger.debug("num requested tweets = " + number_of_tweets.to_i.to_s) 
 		session[:tweets_loaded] = session[:tweets_loaded] + number_of_tweets.to_i
-		logger.debug("tweets loaded = " + session[:tweets_loaded].to_s)
 		if session[:tweets_loaded] > @total_tweets
 			session[:tweets_loaded] = @total_tweets
 			@done = true
 		end
 		
-		logger.debug("3")
-		
 		@tweets_loaded = session[:tweets_loaded]
-
-		@lujack_user.save	
+		@lujack_user.save
 		
     respond_to do |format|
       format.js  
@@ -108,7 +98,6 @@ class SessionsController < ApplicationController
 		begin
 			@lujack_user = 	LujackUser.find(session[:id])
 		rescue ActiveRecord::RecordNotFound
-			logger.debug("something horrible happened!")
 			@something_horrible_happened = true
 			return
 		end
