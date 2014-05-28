@@ -1,6 +1,6 @@
 class LujackUser < ActiveRecord::Base
   attr_accessible :twitter_username
-  attr_accessor :favorite_users
+  attr_accessor :error_occurred
   has_many :twitter_users
   has_many :tweets
   
@@ -12,6 +12,7 @@ class LujackUser < ActiveRecord::Base
     twitter_error_occurred = false
     favorite_users = Array.new
     loaded_all_tweets = false
+    self.error_occurred = false
     
     if not self.max_id.nil?
 	 	#	options = {:count => number_of_tweets, :max_id => self.max_id}
@@ -26,7 +27,7 @@ class LujackUser < ActiveRecord::Base
  			favorites = client.favorites(self.twitter_username, options)
 		rescue Twitter::Error::TooManyRequests => error
 			#We're done here. Perhaps eventually flip back to the app reserve of request?
-			twitter_error_occurred = true
+			self.error_occurred = true
 		end
 		
 		if favorites.nil?
@@ -113,7 +114,7 @@ class LujackUser < ActiveRecord::Base
 				begin
 					favorite_user.random_tweet_html = client.oembed(tweet_id, oembed_options).html 
 				rescue Twitter::Error::TooManyRequests => error
-					twitter_error_occurrred = true
+					self.error_occurrred = true
 				end
 			end
 		end
