@@ -1,14 +1,24 @@
 class SessionsController < ApplicationController
-
+	#####
+	# Controller level exception handling
+	#####
+	rescue_from 'Twitter::Error::TooManyRequests' do |error|
+		@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
+		render 'error' and return
+	end
+	
+	#####
+	# Controller Actions
+	#####
 	def create
-    session[:access_token] = request.env['omniauth.auth']['credentials']['token']
-    session[:access_token_secret] = request.env['omniauth.auth']['credentials']['secret']
+		session[:access_token] = request.env['omniauth.auth']['credentials']['token']
+		session[:access_token_secret] = request.env['omniauth.auth']['credentials']['secret']
     redirect_to show_path
   end
 
 	def tweet
 		if session['access_token'] && session['access_token_secret']
-      @user = client.user(include_entities: true)
+    	@user = client.user(include_entities: true)
 		end
 		tweet = params[:tweet]
 		client.update(tweet)
@@ -16,16 +26,12 @@ class SessionsController < ApplicationController
 	end
 		
 	def find_or_create_user
-		if session['access_token'] && session['access_token_secret']
-      user = client.user(include_entities: true)
-      total_tweets = user.favorites_count
-      @username = user.screen_name
-      user_is_authenticated = true
-    else
-    	@username = params[:username]
-    	user_is_authenticated = false
+		find_user_authentication_information
+		if @user 
+			total_tweets = @user.favorites_count
 		end
 		
+		logger.debug("session before = " + session.inspect)
 		#@lujack_user = LujackUser.find_by_twitter_username(@username)
 		
 		#if not @lujack_user.nil?
@@ -43,30 +49,29 @@ class SessionsController < ApplicationController
 		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
 		end
+		logger.debug("in find/create, lujack user id is " + @lujack_user.id.to_s)
 		id = @lujack_user.id
 		session[:id] = id
 		session[:tweets_loaded] = 0
 		session[:total_tweets] = total_tweets
-		
-		respond_to do |format|
-			format.js
-		end
+		session[:arbitrary_thing] = "arbitrary thing"
+		logger.debug("in find/create, the session variable is" + session.inspect)
 	
 	end
 	
 	def incremental_load_tweets
 		@done = false
+		sleep 0.5
 		number_of_tweets = params[:number_of_tweets]
 		@total_tweets = session[:total_tweets]
-		#load user from database. PANIC if we can't find it
-		begin
-			@lujack_user = 	LujackUser.find(session[:id])
-		rescue ActiveRecord::RecordNotFound
-			@error_human_readable = "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan"
+		if not find_lujack_user_from_session
 			render 'error' and return
 		end
 
-		loaded_all_tweets = @lujack_user.incremental_load_tweets(client, number_of_tweets)
+		@lujack_user.client = client
+		@lujack_user.application_reserve_client = application_reserve_client
+		
+		loaded_all_tweets = @lujack_user.incremental_load_tweets(number_of_tweets)
 		
 		if @lujack_user.error_occurred
 			@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
@@ -83,45 +88,52 @@ class SessionsController < ApplicationController
 		@tweets_loaded = session[:tweets_loaded]
 		@lujack_user.save
 		
-    respond_to do |format|
-      format.js  
-    end
 	end
 	
 	def finalize
-		#TODO: pull the following shared code out
-		begin
-			@lujack_user = 	LujackUser.find(session[:id])
-		rescue ActiveRecord::RecordNotFound
-			@error_human_readable = "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan"
+		if not find_lujack_user_from_session
 			render 'error' and return
 		end
-		#END TODO
 		
-		@favorite_users = @lujack_user.calculate_favorite_users(client)
+		@lujack_user.client = client
+		@lujack_user.application_reserve_client = application_reserve_client
+		@favorite_users = @lujack_user.calculate_favorite_users
 		
 		@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
 		
-		reset_session
+		session[:id] = nil
+		session[:tweets_loaded] = nil
+		session[:total_tweets] = nil
+		logger.debug("session has been reset")
 	end
 
   def show
-  	#TODO: pull the following shared code out
-  	if session['access_token'] && session['access_token_secret']
-  		begin
-	      user = client.user(include_entities: true)
-	      @username = user.screen_name
-	    rescue Twitter::Error::TooManyRequests => error
-	    	@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
-				render 'error' and return
-	    end
-      user_is_authenticated = true
-    else
-			@username = params[:username]
-		end
-		#END TODO
-		
+		find_user_authentication_information
 		session[:username] = @username
-		
+  end
+  
+  #####
+  # Controller helper functions
+  #####
+  def find_lujack_user_from_session
+		begin
+			logger.debug("session variable is " + session.inspect)
+			@lujack_user = 	LujackUser.find(session[:id])
+		rescue ActiveRecord::RecordNotFound
+			@error_human_readable = "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan"
+			return false
+		end
+		return true
+  end
+  
+  def find_user_authentication_information
+  	if session['access_token'] && session['access_token_secret']
+	      @user = client.user(include_entities: true)
+	      @username = @user.screen_name
+      	@user_is_authenticated = true
+    else
+			  @username = params[:username]
+		end
+		logger.debug("auth username = " + @username.to_s)
   end
 end

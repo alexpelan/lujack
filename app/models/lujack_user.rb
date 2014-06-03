@@ -1,13 +1,13 @@
 class LujackUser < ActiveRecord::Base
   attr_accessible :twitter_username
-  attr_accessor :error_occurred
+  attr_accessor :error_occurred, :client, :application_reserve_client
   has_many :twitter_users
   has_many :tweets
   
   #get number_of_tweets favorites
   #save to database
   #return true if there aren't any tweets left  
-  def incremental_load_tweets(client, number_of_tweets)
+  def incremental_load_tweets(number_of_tweets)
     favorites = []
     twitter_error_occurred = false
     favorite_users = Array.new
@@ -24,10 +24,14 @@ class LujackUser < ActiveRecord::Base
  		
  		 
  		begin
- 			favorites = client.favorites(self.twitter_username, options)
+ 			favorites = self.client.favorites(self.twitter_username, options)
 		rescue Twitter::Error::TooManyRequests => error
-			#We're done here. Perhaps eventually flip back to the app reserve of request?
-			self.error_occurred = true
+			begin
+				logger.debug("in the application reserve")
+				favorites = self.application_reserve_client.favorites(self.twitter_username, options)
+			rescue Twitter::Error::TooManyRequest => error
+				self.error_occurred = true
+			end
 		end
 		
 		if favorites.nil?
@@ -62,7 +66,7 @@ class LujackUser < ActiveRecord::Base
 	
 	end
 		 
-  def calculate_favorite_users(client)
+  def calculate_favorite_users
   	favorites = []
   	favorites = Tweet.find_all_by_lujack_user_id(self.id)
   
@@ -94,14 +98,13 @@ class LujackUser < ActiveRecord::Base
 		end
 		
 		favorite_users = sort_favorite_users(username_to_twitter_user_hash)
-		self.favorite_users = find_random_tweets(client, favorite_users)
+		self.favorite_users = find_random_tweets(favorite_users)
 		
 		return self.favorite_users
 	end
 	
-	def find_random_tweets(client, favorite_users)
+	def find_random_tweets(favorite_users)
 		oembed_options = {:hide_media => true, :hide_thread => true}
-		twitter_error_occurred = false
 		
 		#the top ten users get a sample tweet - we limit to ten to keep our oembed requests down (doing it for all tweets would go over our rate limit more often than not)
 		for i in 0..9 do
@@ -110,11 +113,14 @@ class LujackUser < ActiveRecord::Base
 			username = favorite_user.username
 			tweet_id = favorite_user.random_tweet_id
 			
-			if not twitter_error_occurred == true
+			begin
+				favorite_user.random_tweet_html = self.client.oembed(tweet_id, oembed_options).html 
+			rescue Twitter::Error::TooManyRequests => error
+				#try application reserve of requests
 				begin
-					favorite_user.random_tweet_html = client.oembed(tweet_id, oembed_options).html 
+					favorite_user.random_tweet_html = self.application_reserve_client.oembed(tweet_id, oembed_options.html)
 				rescue Twitter::Error::TooManyRequests => error
-					self.error_occurrred = true
+					self.error_occurred = true
 				end
 			end
 		end

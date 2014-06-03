@@ -1,1 +1,1 @@
-$("#errors").text("<%= j @error_human_readable %>");
+$("#errors").html("<%= escape_javascript( render(:partial => 'layouts/error') ) %>")

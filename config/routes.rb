@@ -6,6 +6,7 @@ Lujack::Application.routes.draw do
 	get '/find_or_create_user(/:username)', to: 'sessions#find_or_create_user', as: 'find_or_create_user'
 	get '/incremental_load_tweets/:number_of_tweets', to: 'sessions#incremental_load_tweets', as: 'incremental_load_tweets'
 	get 'finalize', to: 'sessions#finalize', as: 'finalize'
+	get '/about', to: 'pages#about', as: 'about'
 
   root :to => 'welcome#index'
 
