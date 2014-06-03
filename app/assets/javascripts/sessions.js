@@ -10,7 +10,10 @@ function initializeFavoriteUserLoad(){
 	$.ajax({
 			type: "GET",
 			url: request_url,
-	}).done(incrementalLoadTweets(200));	
+	}).done(setTimeout(function(){
+		incrementalLoadTweets(200);
+		}, 500)
+	);	
 	$("#progress_bar").text("Initializing");
 }
 

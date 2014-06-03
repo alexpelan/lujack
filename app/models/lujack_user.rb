@@ -27,9 +27,7 @@ class LujackUser < ActiveRecord::Base
  			favorites = self.client.favorites(self.twitter_username, options)
 		rescue Twitter::Error::TooManyRequests => error
 			begin
-				logger.debug("in the application reserve")
-				favorites = self.application_reserve_client.favorites(self.twitter_username, options)
-			rescue Twitter::Error::TooManyRequest => error
+				rescue Twitter::Error::TooManyRequests => error
 				self.error_occurred = true
 			end
 		end
