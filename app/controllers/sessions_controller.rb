@@ -68,6 +68,8 @@ class SessionsController < ApplicationController
 		
 		loaded_all_tweets = @lujack_user.incremental_load_tweets(number_of_tweets)
 		
+		@done = true #TODO: DELETE ME, I AM FOR TESTING ONLY
+
 		if @lujack_user.error_occurred
 			@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
 			render 'error' and return
