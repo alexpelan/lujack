@@ -37,12 +37,13 @@ class SessionsController < ApplicationController
 		#	lujack_user_up_to_date = @lujack_user.is_up_to_date?
 		#end
 		
-		#if (lujack_user_up_to_date or not user_is_authenticated) #if they're not authenticated, they're on someone else's page
+		#if (lujack_user_up_to_date or not @user_is_authenticated) #if they're not authenticated, they're on someone else's page
 			#@favorite_users = TwitterUser.where(lujack_user_id: @lujack_user.id).order("favorite_count DESC").all()
-		#elsif user_is_authenticated 
-		@lujack_user = LujackUser.new
-		@lujack_user.twitter_username = @username
-		@lujack_user.save  #this gives it an id
+			#render 'finalize' and return
+		#elsif @user_is_authenticated 
+			@lujack_user = LujackUser.new
+			@lujack_user.twitter_username = @username
+			@lujack_user.save  #this gives it an id
 		#end
 		
 		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
@@ -67,17 +68,16 @@ class SessionsController < ApplicationController
 		@lujack_user.application_reserve_client = application_reserve_client
 		
 		loaded_all_tweets = @lujack_user.incremental_load_tweets(number_of_tweets)
-		
-		@done = true #TODO: DELETE ME, I AM FOR TESTING ONLY
 
 		if @lujack_user.error_occurred
+			
 			@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
 			render 'error' and return
 		end
 		
 		#save state to the session
 		session[:tweets_loaded] = session[:tweets_loaded] + number_of_tweets.to_i
-		if session[:tweets_loaded] > @total_tweets
+		if session[:tweets_loaded] > @total_tweets or loaded_all_tweets
 			session[:tweets_loaded] = @total_tweets
 			@done = true
 		end
@@ -95,6 +95,12 @@ class SessionsController < ApplicationController
 		@lujack_user.client = client
 		@lujack_user.application_reserve_client = application_reserve_client
 		@favorite_users = @lujack_user.calculate_favorite_users
+		
+		#various things can make @favorite_users null, including things I haven't been able to predict.
+		if @lujack_user.error_occurred
+			@error_human_readable = "Hmm...our brain got a little fried on that one."
+			render 'error' and return
+		end
 		
 		@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
 		

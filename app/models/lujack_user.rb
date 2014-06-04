@@ -9,11 +9,9 @@ class LujackUser < ActiveRecord::Base
   #return true if there aren't any tweets left  
   def incremental_load_tweets(number_of_tweets)
     favorites = []
-    twitter_error_occurred = false
     favorite_users = Array.new
     loaded_all_tweets = false
     self.error_occurred = false
-    
     if not self.max_id.nil?
 	 	#	options = {:count => number_of_tweets, :max_id => self.max_id}
 	 		options = {:count => 40, :max_id => self.max_id} #TODO: delete me later
@@ -24,15 +22,16 @@ class LujackUser < ActiveRecord::Base
  		
  		 
  		begin
- 			favorites = self.client.favorites(self.twitter_username, options)
+			favorites = self.client.favorites(self.twitter_username, options)
 		rescue Twitter::Error::TooManyRequests => error
 			begin
-				rescue Twitter::Error::TooManyRequests => error
+				favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
+			rescue Twitter::Error::TooManyRequests => error
 				self.error_occurred = true
 			end
 		end
 		
-		if favorites.nil?
+		if favorites.count == 0
 			loaded_all_tweets = true
 		else
 		
@@ -49,7 +48,6 @@ class LujackUser < ActiveRecord::Base
 		end
 		
 		save_tweets(favorites)
-		
 		return loaded_all_tweets
 	end
 	
@@ -65,10 +63,15 @@ class LujackUser < ActiveRecord::Base
 	end
 		 
   def calculate_favorite_users
-  	favorites = []
+  	self.error_occurred = false
+	favorites = []
   	favorites = Tweet.find_all_by_lujack_user_id(self.id)
-  
-  
+ 	
+	if favorites.count == 0
+		self.error_occurred = true
+		return nil
+	end 
+  	
   	username_to_twitter_user_hash = Hash.new
   				
   	favorites.each do |favorite|		

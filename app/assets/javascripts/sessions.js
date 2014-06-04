@@ -12,7 +12,7 @@ function initializeFavoriteUserLoad(){
 			url: request_url,
 	}).done(setTimeout(function(){
 		incrementalLoadTweets(200);
-		}, 500)
+		}, 1000)
 	);	
 	$("#progress_bar").text("Initializing");
 }
@@ -26,7 +26,7 @@ function incrementalLoadTweets(number_of_tweets){
 }
 
 function updateLoadingBarProgress(tweets_loaded, number_of_tweets){
-	var progress_bar_text =  tweets_loaded + " of " + total_tweets;
+	var progress_bar_text =  tweets_loaded + " of " + total_tweets + " loaded";
 	$("#progress_bar").text(progress_bar_text);
 	var new_progress_bar_width = (tweets_loaded / number_of_tweets) * 100;
 	if (new_progress_bar_width < 10){
@@ -37,7 +37,7 @@ function updateLoadingBarProgress(tweets_loaded, number_of_tweets){
 
 function finalize(){
 	$("#progress_bar").text("Processing tweets")
-	var request_url = "/finalize/"
+	var request_url = "/finalize/placeholder.js"
 	$.ajax({
 		type: "GET",
 		url: request_url,

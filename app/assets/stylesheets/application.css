@@ -19,6 +19,7 @@ body{
 
 #tweet{
 	width: 750px;	
+	margin-left: 100px;
 }
 
 .embedded_tweet{
@@ -36,7 +37,8 @@ body{
 
 .favorite_user_list ul{
 	list-style-type: none
-	width: 500px;	
+	width: 500px;
+	margin: 0;	
 }
 
 h3 {
@@ -53,7 +55,7 @@ h3 {
 	list-style-type: none;
 }
 
-li:hover{
+.favorite_user_list li:hover{
 	background: #eee;
 	cursor: pointer;
 }
@@ -61,3 +63,4 @@ li:hover{
 .hidden{
 	display: none;	
 }
+
