@@ -42,6 +42,9 @@ class SessionsController < ApplicationController
 		if not @lujack_user.nil?
 			lujack_user_up_to_date = @lujack_user.is_up_to_date?
 			id = @lujack_user.id
+			if not lujack_user_up_to_date and @is_user_on_own_page
+				@lujack_user.destroy_tweets_and_twitter_users #destroy networked tables since we're going to rebuild them.
+			end
 		else 
 			lujack_user_up_to_date = false
 		end
