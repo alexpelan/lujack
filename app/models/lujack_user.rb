@@ -69,12 +69,12 @@ def save_favorite_users(favorite_users)
 end
 
 def destroy_tweets_and_twitter_users
-	tweets = Tweet.find_all_by_lujack_user_id(@lujack_user.id)
+	tweets = Tweet.find_all_by_lujack_user_id(self.id)
         tweets.each do |tweet|
         	tweet.destroy
         end
         
-	twitter_users = TwitterUser.find_all_by_lujack_user_id(@lujack_user.id)
+	twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
        	twitter_users.each do |twitter_user|
         	twitter_user.destroy
         end
@@ -144,6 +144,8 @@ def calculate_favorite_users
 				rescue Twitter::Error::TooManyRequests => error
 					self.error_occurred = true
 				end
+			rescue Twitter::Error::Forbidden => error #user has protected their tweets
+				favorite_user.random_tweet_html = "This user has protected their tweets."
 			end
 		end
 		
