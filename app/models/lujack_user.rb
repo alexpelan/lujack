@@ -68,6 +68,19 @@ def save_favorite_users(favorite_users)
 	end
 end
 
+def destroy_tweets_and_twitter_users
+	tweets = Tweet.find_all_by_lujack_user_id(@lujack_user.id)
+        tweets.each do |tweet|
+        	tweet.destroy
+        end
+        
+	twitter_users = TwitterUser.find_all_by_lujack_user_id(@lujack_user.id)
+       	twitter_users.each do |twitter_user|
+        	twitter_user.destroy
+        end
+
+end
+
 		 
 def calculate_favorite_users
   	self.error_occurred = false

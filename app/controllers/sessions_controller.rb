@@ -4,8 +4,16 @@ class SessionsController < ApplicationController
 	#####
 	rescue_from 'Twitter::Error::TooManyRequests' do |error|
 		@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
+		remove_lujack_user_from_database
 		render 'error' and return
 	end
+	
+	def remove_lujack_user_from_database
+		if find_lujack_user_from_session
+			@lujack_user.destroy_tweets_and_twitter_users
+			@lujack_user.destroy
+		end
+	end	
 	
 	#####
 	# Controller Actions
@@ -80,6 +88,7 @@ class SessionsController < ApplicationController
 		if @lujack_user.error_occurred
 			
 			@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
+			remove_lujack_user_from_database
 			render 'error' and return
 		end
 		
