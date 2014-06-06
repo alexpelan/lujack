@@ -13,12 +13,13 @@ class SessionsController < ApplicationController
 	def create
 		session[:access_token] = request.env['omniauth.auth']['credentials']['token']
 		session[:access_token_secret] = request.env['omniauth.auth']['credentials']['secret']
-    		redirect_to show_path
+    		find_user_authentication_information
+		redirect_to :action => "show", :username => @username
   	end
 
 	def tweet
 		if session['access_token'] && session['access_token_secret']
-    	@user = client.user(include_entities: true)
+    			@user = client.user(include_entities: true)
 		end
 		tweet = params[:tweet]
 		client.update(tweet)
@@ -27,36 +28,49 @@ class SessionsController < ApplicationController
 		
 	def find_or_create_user
 		find_user_authentication_information
-		if @user 
-			total_tweets = @user.favorites_count
+
+		@lujack_user = LujackUser.find_by_twitter_username(@username)
+		logger.debug("luj = " + @lujack_user.inspect)	
+	
+		if not @lujack_user.nil?
+			lujack_user_up_to_date = @lujack_user.is_up_to_date?
+			id = @lujack_user.id
+		else 
+			lujack_user_up_to_date = false
 		end
 		
-		#@lujack_user = LujackUser.find_by_twitter_username(@username)
-		
-		#if not @lujack_user.nil?
-		#	lujack_user_up_to_date = @lujack_user.is_up_to_date?
-		#end
-		
-		#if (lujack_user_up_to_date or not @user_is_authenticated) #if they're not authenticated, they're on someone else's page
-			#@favorite_users = TwitterUser.where(lujack_user_id: @lujack_user.id).order("favorite_count DESC").all()
-			#render 'finalize' and return
-		#elsif @user_is_authenticated 
+		logger.debug("luj user up to date = " + lujack_user_up_to_date.to_s)
+		logger.debug(" on own page = " + @is_user_on_own_page.to_s)	
+		use_information_from_database = lujack_user_up_to_date or not @is_user_on_own_page	
+		update_from_api = @is_user_on_own_page
+		if use_information_from_database
+			@favorite_users = TwitterUser.where(lujack_user_id: id).order("favorite_count DESC").all()
+			logger.debug("faves = " + @favorite_users.inspect)
+			render 'finalize' and return
+		elsif update_from_api
 			@lujack_user = LujackUser.new
 			@lujack_user.twitter_username = @username
 			@lujack_user.save  #this gives it an id
-		#end
-		
+			id = @lujack_user.id
+			logger.debug("here")
+		end
+	
+		if @user
+                        total_tweets = @user.favorites_count
+                end
+	
 		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
 		end
-		id = @lujack_user.id
 		session[:id] = id
 		session[:tweets_loaded] = 0
 		session[:total_tweets] = total_tweets
+		logger.debug(" sess at end of find/create = " + session.inspect)
 	
 	end
 	
 	def incremental_load_tweets
+		logger.debug("sesh at beginning of incremental = " + session.inspect)
 		@done = false
 		number_of_tweets = params[:number_of_tweets]
 		@total_tweets = session[:total_tweets]
@@ -110,8 +124,9 @@ class SessionsController < ApplicationController
 	end
 
   	def show
-		find_user_authentication_information
+		@username = params[:username]
 		session[:username] = @username
+		logger.debug("@username = " + @username.to_s)
   	end
   
   	#####
@@ -130,10 +145,22 @@ class SessionsController < ApplicationController
   	def find_user_authentication_information
   		if session['access_token'] && session['access_token_secret']
 	      		@user = client.user(include_entities: true)
-	      		@username = @user.screen_name
+			@username = @user.screen_name
       			@user_is_authenticated = true
-    		else
+			logger.debug("params = " + params.inspect)
+			logger.debug("usernames = " + @username.to_s)
+			if @username == params[:username]
+				logger.debug("we equal")
+				@is_user_on_own_page = true
+			else
+				logger.debug("not eq")
+				@is_user_on_own_page = false
+			end
+		else
 			@username = params[:username]
+			@user_is_authenticated = false
+			@is_user_on_own_page = false
 		end
+		logger.debug("is user on own page " + @is_user_on_own_page.to_s)
   	end
 end

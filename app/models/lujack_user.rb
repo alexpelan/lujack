@@ -8,61 +8,68 @@ class LujackUser < ActiveRecord::Base
   #save to database
   #return true if there aren't any tweets left  
   def incremental_load_tweets(number_of_tweets)
-    favorites = []
-    favorite_users = Array.new
-    loaded_all_tweets = false
-    self.error_occurred = false
-    if not self.max_id.nil?
-	 	#	options = {:count => number_of_tweets, :max_id => self.max_id}
-	 		options = {:count => 40, :max_id => self.max_id} #TODO: delete me later
-	 	else
- 		# 	options = {:count => number_of_tweets}
- 		 	options = {:count => 40} #TODO: delete me later
- 		end
+  	favorites = []
+    	favorite_users = Array.new
+   	loaded_all_tweets = false
+    	self.error_occurred = false
+    	if not self.max_id.nil?
+	 #	options = {:count => number_of_tweets, :max_id => self.max_id}
+	 	options = {:count => 40, :max_id => self.max_id} #TODO: delete me later
+	 else
+ 	# 	options = {:count => number_of_tweets}
+ 		 options = {:count => 40} #TODO: delete me later
+ 	end
  		
  		 
- 		begin
-			favorites = self.client.favorites(self.twitter_username, options)
+ 	begin
+		favorites = self.client.favorites(self.twitter_username, options)
+	rescue Twitter::Error::TooManyRequests => error
+		begin
+			favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
 		rescue Twitter::Error::TooManyRequests => error
-			begin
-				favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
-			rescue Twitter::Error::TooManyRequests => error
-				self.error_occurred = true
-			end
+			self.error_occurred = true
 		end
+	end
 		
-		if favorites.count == 0
-			loaded_all_tweets = true
-		else
-		
-			if not favorites.last.nil?
-				if self.max_id == favorites.last.id
-					loaded_all_tweets = true
-				end
-
-			end
-		end
+	if favorites.count == 0
+		loaded_all_tweets = true
+	else
 		
 		if not favorites.last.nil?
-			self.max_id = favorites.last.id
+			if self.max_id == favorites.last.id
+				loaded_all_tweets = true
+			end
+
 		end
+	end
 		
-		save_tweets(favorites)
-		return loaded_all_tweets
+	if not favorites.last.nil?
+		self.max_id = favorites.last.id
+	end
+		
+	save_tweets(favorites)
+	return loaded_all_tweets
+end
+	
+def save_tweets(tweets)
+	
+	tweets.each do |tweet|
+		tweet_database_object = self.tweets.build
+		tweet_database_object.username = tweet.user.screen_name.to_s()
+		tweet_database_object.tweet_id = tweet.id.to_s
+		tweet_database_object.save
 	end
 	
-	def save_tweets(tweets)
-	
-		tweets.each do |tweet|
-			tweet_database_object = self.tweets.build
-			tweet_database_object.username = tweet.user.screen_name.to_s()
-			tweet_database_object.tweet_id = tweet.id.to_s
-			tweet_database_object.save
-		end
-	
+end
+
+def save_favorite_users(favorite_users)
+	favorite_users.each do |favorite_user|
+		favorite_user.save
 	end
+end
+
 		 
-  def calculate_favorite_users
+def calculate_favorite_users
   	self.error_occurred = false
 	favorites = []
   	favorites = Tweet.find_all_by_lujack_user_id(self.id)
@@ -100,7 +107,8 @@ class LujackUser < ActiveRecord::Base
 		
 		favorite_users = sort_favorite_users(username_to_twitter_user_hash)
 		self.favorite_users = find_random_tweets(favorite_users)
-		
+		save_favorite_users(self.favorite_users)	
+	
 		return self.favorite_users
 	end
 	
@@ -129,14 +137,14 @@ class LujackUser < ActiveRecord::Base
 		return favorite_users
 	end
 	
-	def sort_favorite_users(username_to_twitter_user)
+def sort_favorite_users(username_to_twitter_user)
 		
 		#sort the twitter_user objects by favorite_count
 		favorite_users = username_to_twitter_user.values
 		favorite_users.sort! {|a,b| a.favorite_count <=> b.favorite_count}.reverse!
 		
 		return favorite_users
-  end
+end
  
  	def is_up_to_date?
  
