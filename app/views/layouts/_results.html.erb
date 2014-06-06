@@ -1,5 +1,5 @@
 <div id = "tweet_form">
-	<%= form_tag("/tweet", method: "get", class: "form-inline") do %>
+	<%= form_tag("/tweet", class: "form-inline", remote: true) do %>
 		<%= text_field_tag "tweet", @tweet_string %>
 		<button type="submit" class="btn btn-primary">Tweet your results</button>
 	<% end %>

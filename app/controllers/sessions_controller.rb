@@ -31,7 +31,6 @@ class SessionsController < ApplicationController
 		end
 		tweet = params[:tweet]
 		client.update(tweet)
-		redirect_to show_path
 	end
 		
 	def find_or_create_user
@@ -123,6 +122,7 @@ class SessionsController < ApplicationController
 		end
 		
 		@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
+		@is_user_on_own_page = true
 		
 		session[:id] = nil
 		session[:tweets_loaded] = nil
