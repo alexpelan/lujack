@@ -1,6 +1,9 @@
-$('.progress').fadeOut('slow', fadeInResults);
+$(".progress").fadeOut("slow", fadeInResults);
 
 function fadeInResults(){
- $('#results').append("<%= escape_javascript(render(:partial => 'layouts/results')) %>");
- $('#results').fadeIn('fast');
+ 	$("#results").append("<%= escape_javascript(render(:partial => 'layouts/results')) %>");
+ 	<% if not @is_user_on_own_page %>
+		$("#tweet_form").hide();
+	<% end %>
+	$("#results").fadeIn('fast');
 }

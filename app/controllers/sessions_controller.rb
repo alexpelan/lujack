@@ -30,7 +30,6 @@ class SessionsController < ApplicationController
 		find_user_authentication_information
 
 		@lujack_user = LujackUser.find_by_twitter_username(@username)
-		logger.debug("luj = " + @lujack_user.inspect)	
 	
 		if not @lujack_user.nil?
 			lujack_user_up_to_date = @lujack_user.is_up_to_date?
@@ -39,20 +38,17 @@ class SessionsController < ApplicationController
 			lujack_user_up_to_date = false
 		end
 		
-		logger.debug("luj user up to date = " + lujack_user_up_to_date.to_s)
-		logger.debug(" on own page = " + @is_user_on_own_page.to_s)	
-		use_information_from_database = lujack_user_up_to_date or not @is_user_on_own_page	
+		@use_information_from_database = lujack_user_up_to_date or not @is_user_on_own_page	
 		update_from_api = @is_user_on_own_page
-		if use_information_from_database
+		if @use_information_from_database
 			@favorite_users = TwitterUser.where(lujack_user_id: id).order("favorite_count DESC").all()
-			logger.debug("faves = " + @favorite_users.inspect)
+			@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
 			render 'finalize' and return
 		elsif update_from_api
 			@lujack_user = LujackUser.new
 			@lujack_user.twitter_username = @username
 			@lujack_user.save  #this gives it an id
 			id = @lujack_user.id
-			logger.debug("here")
 		end
 	
 		if @user
@@ -65,12 +61,10 @@ class SessionsController < ApplicationController
 		session[:id] = id
 		session[:tweets_loaded] = 0
 		session[:total_tweets] = total_tweets
-		logger.debug(" sess at end of find/create = " + session.inspect)
 	
 	end
 	
 	def incremental_load_tweets
-		logger.debug("sesh at beginning of incremental = " + session.inspect)
 		@done = false
 		number_of_tweets = params[:number_of_tweets]
 		@total_tweets = session[:total_tweets]
@@ -126,7 +120,6 @@ class SessionsController < ApplicationController
   	def show
 		@username = params[:username]
 		session[:username] = @username
-		logger.debug("@username = " + @username.to_s)
   	end
   
   	#####
@@ -147,13 +140,9 @@ class SessionsController < ApplicationController
 	      		@user = client.user(include_entities: true)
 			@username = @user.screen_name
       			@user_is_authenticated = true
-			logger.debug("params = " + params.inspect)
-			logger.debug("usernames = " + @username.to_s)
 			if @username == params[:username]
-				logger.debug("we equal")
 				@is_user_on_own_page = true
 			else
-				logger.debug("not eq")
 				@is_user_on_own_page = false
 			end
 		else
@@ -161,6 +150,5 @@ class SessionsController < ApplicationController
 			@user_is_authenticated = false
 			@is_user_on_own_page = false
 		end
-		logger.debug("is user on own page " + @is_user_on_own_page.to_s)
   	end
 end

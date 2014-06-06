@@ -1,7 +1,9 @@
-<%= form_tag("/tweet", method: "get", class: "form-inline") do %>
-	<%= text_field_tag "tweet", @tweet_string %>
-	<button type="submit" class="btn btn-primary">Tweet your results</button>
-<% end %>
+<div id = "tweet_form">
+	<%= form_tag("/tweet", method: "get", class: "form-inline") do %>
+		<%= text_field_tag "tweet", @tweet_string %>
+		<button type="submit" class="btn btn-primary">Tweet your results</button>
+	<% end %>
+</div>
 
 <ul class="favorite_user_list">
 	<% @favorite_users.each_with_index do |favorite_user, index| %>
