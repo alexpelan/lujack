@@ -22,5 +22,8 @@
 
 <%= yield %>
 
+<!-- Google analytics support in production only -->
+<%= render :partial=> 'layouts/google_analytics' if Rails.env == 'production' %>
+
 </body>
 </html>
