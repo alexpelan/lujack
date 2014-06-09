@@ -53,6 +53,7 @@ class SessionsController < ApplicationController
 		if @use_information_from_database
 			@favorite_users = TwitterUser.where(lujack_user_id: id).order("favorite_count DESC").all()
 			@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
+			logger.debug("interest bool is " + @is_user_on_own_page.to_s)
 			render 'finalize' and return
 		elsif update_from_api
 			@lujack_user = LujackUser.new

@@ -64,6 +64,10 @@ h3 {
 	display: none;	
 }
 
+.override_bootstrap_a_hover:hover{
+	background-color: none;
+}
+
 .alert-results{
 	margin: 0 auto;
 	width: 500px;

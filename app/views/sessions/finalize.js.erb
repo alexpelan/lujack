@@ -2,13 +2,12 @@ $(".progress").fadeOut("slow", fadeInResults);
 
 function fadeInResults(){
  	$("#results").append("<%= escape_javascript(render(:partial => 'layouts/results')) %>");
- 	console.log("count of alert = " + $(".alert").length);
 	<% if not @is_user_on_own_page %>
 		$("#tweet_form").hide();
 		$(".alert").html("<%= escape_javascript(render(:partial => 'layouts/sign_in_with_twitter')) %>");
 	<% end %>
 	<% if @has_more_than_2000_tweets %>
-		$(".alert").thml("<%= escape_javascript(render(:partial => 'layouts/more_than_2000_tweets')) %>");
+		$(".alert").html("<%= escape_javascript(render(:partial => 'layouts/more_than_2000_tweets')) %>");
 	<% end %>
 	$("#results").fadeIn('fast');
 }
