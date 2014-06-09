@@ -192,7 +192,7 @@ end
   def craft_tweet_string(favorite_users)
   
   	#you don't just write a tweet, you CRAFT a tweet
-		tweet_string = "My favorite tweeters are @" + favorite_users[0].username  + ", @" + favorite_users[1].username + ", and @" + favorite_users[2].username + ". Check out yours at lujack.herokuapp.com"
+		tweet_string = "My favorite tweeters are @" + favorite_users[0].username  + ", @" + favorite_users[1].username + ", and @" + favorite_users[2].username + ". Check out yours at myfavoritetweeters.herokuapp.com"
 		return tweet_string
  
   end

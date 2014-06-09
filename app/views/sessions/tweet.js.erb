@@ -1,1 +1,1 @@
-$("#tweet_form").html("Tweet successfully sent.");
+$("#tweet_form").html("<%= escape_javascript(render(:partial => 'layouts/tweet_success')) %>");

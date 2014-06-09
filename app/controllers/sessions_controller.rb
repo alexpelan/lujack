@@ -67,6 +67,7 @@ class SessionsController < ApplicationController
 	
 		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
+			session[:has_more_than_2000_tweets] = true
 		end
 		session[:id] = id
 		session[:tweets_loaded] = 0
@@ -122,8 +123,9 @@ class SessionsController < ApplicationController
 		end
 		
 		@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
+		@has_more_than_2000_tweets = session[:has_more_than_2000_tweets]
 		@is_user_on_own_page = true
-		
+	
 		session[:id] = nil
 		session[:tweets_loaded] = nil
 		session[:total_tweets] = nil
