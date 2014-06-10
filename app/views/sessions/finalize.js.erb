@@ -2,6 +2,7 @@ $(".progress").fadeOut("slow", fadeInResults);
 
 function fadeInResults(){
  	$("#results").append("<%= escape_javascript(render(:partial => 'layouts/results')) %>");
+	wireUpResultsEvents();
 	<% if not @is_user_on_own_page %>
 		$("#tweet_form").hide();
 		$("#alert").html("<%= escape_javascript(render(:partial => 'layouts/sign_in_with_twitter')) %>");

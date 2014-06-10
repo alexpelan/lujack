@@ -72,7 +72,7 @@ class SessionsController < ApplicationController
                         total_tweets = @user.favorites_count
                 end
 	
-		if total_tweets > 1000 #for rate limiting purposes, we'll only load their last 2000
+		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
 			session[:has_more_than_2000_tweets] = true
 		end
@@ -136,6 +136,7 @@ class SessionsController < ApplicationController
 		session[:id] = nil
 		session[:tweets_loaded] = nil
 		session[:total_tweets] = nil
+		session[:has_more_than_2000_tweets] = nil
 	end
 
   	def show

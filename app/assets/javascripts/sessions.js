@@ -39,3 +39,19 @@ function finalize(){
 		url: request_url,
 	});
 }
+
+function wireUpResultsEvents(){
+	$("#tweet").keyup( function(){
+		var length = this.value.length;
+		$("#tweet_length").text(length);
+		if (length > 140 || length === 0){
+			$("#tweet_form").addClass("control-group error");
+			$("#tweet_button").attr("disabled", "disabled");
+		}
+		else{
+			$("#tweet_form").removeClass("control-group error");
+			$("#tweet_button").removeAttr("disabled");
+		}
+	});
+
+}
