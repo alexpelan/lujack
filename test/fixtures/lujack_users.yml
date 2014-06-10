@@ -1,9 +1,2 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 
-one:
-  twitter_usename: MyString
-  instant_of_update: 
-
-two:
-  twitter_usename: MyString
-  instant_of_update: 

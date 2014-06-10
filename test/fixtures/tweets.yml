@@ -1,11 +1,1 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
-
-one:
-  tweet_id: 1
-  username: MyString
-  lujack_user_id: 1
-
-two:
-  tweet_id: 1
-  username: MyString
-  lujack_user_id: 1
