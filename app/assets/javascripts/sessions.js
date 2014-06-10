@@ -7,10 +7,12 @@ $(document).ready(function(){
 function initializeFavoriteUserLoad(){
 	var username = $("#results").data("username");
 	var request_url = "/find_or_create_user/" + username + ".js";
-	$.ajax({
+	if(username.length > 0){
+		$.ajax({
 			type: "GET",
 			url: request_url,
-	});	
+		});
+	}
 }
 
 function incrementalLoadTweets(number_of_tweets){

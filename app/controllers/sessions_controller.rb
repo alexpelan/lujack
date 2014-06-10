@@ -22,7 +22,7 @@ class SessionsController < ApplicationController
 		session[:access_token] = request.env['omniauth.auth']['credentials']['token']
 		session[:access_token_secret] = request.env['omniauth.auth']['credentials']['secret']
     		find_user_authentication_information
-		redirect_to :action => "show", :username => @username
+		redirect_to :action => "show", :username => @authenticated_username
   	end
 
 	def tweet
@@ -43,7 +43,7 @@ class SessionsController < ApplicationController
 	def find_or_create_user
 		find_user_authentication_information
 
-		@lujack_user = LujackUser.find_by_twitter_username(@username)
+		@lujack_user = LujackUser.find_by_twitter_username(@url_username)
 	
 		if not @lujack_user.nil?
 			lujack_user_up_to_date = @lujack_user.is_up_to_date?
@@ -68,7 +68,7 @@ class SessionsController < ApplicationController
 			render 'finalize' and return
 		elsif update_from_api
 			@lujack_user = LujackUser.new
-			@lujack_user.twitter_username = @username
+			@lujack_user.twitter_username = @authenticated_username
 			@lujack_user.save  #this gives it an id
 			id = @lujack_user.id
 		end
@@ -146,10 +146,6 @@ class SessionsController < ApplicationController
 
   	def show
 		@username = params[:username]
-  		if @username.nil? #this is for the case where their session has already been created, but they click sign in or profile again
-			find_user_authentication_information
-			@username = @authenticated_username
-		end
 		session[:username] = @username
 	end
   
@@ -180,6 +176,6 @@ class SessionsController < ApplicationController
 			@user_is_authenticated = false
 			@is_user_on_own_page = false
 		end
-		@username = params[:username]
+		@url_username = params[:username]
   	end
 end
