@@ -30,7 +30,14 @@ class SessionsController < ApplicationController
     			@user = client.user(include_entities: true)
 		end
 		tweet = params[:tweet]
-		client.update(tweet)
+		
+		begin
+			client.update(tweet)
+		rescue Twitter::Error::Forbidden
+			@error_human_readable = "That tweet couldn't be sent on account of its over 140-character-ness."
+			@show_try_again = false
+			render 'error' and return
+		end
 	end
 		
 	def find_or_create_user
@@ -53,7 +60,6 @@ class SessionsController < ApplicationController
 		if @use_information_from_database
 			@favorite_users = TwitterUser.where(lujack_user_id: id).order("favorite_count DESC").all()
 			@tweet_string = @lujack_user.craft_tweet_string(@favorite_users)
-			logger.debug("interest bool is " + @is_user_on_own_page.to_s)
 			render 'finalize' and return
 		elsif update_from_api
 			@lujack_user = LujackUser.new
@@ -66,7 +72,7 @@ class SessionsController < ApplicationController
                         total_tweets = @user.favorites_count
                 end
 	
-		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
+		if total_tweets > 1000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
 			session[:has_more_than_2000_tweets] = true
 		end

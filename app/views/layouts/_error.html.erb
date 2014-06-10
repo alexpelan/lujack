@@ -1,5 +1,11 @@
-<div class="container"
-	<div id="errors">
-		<%= @error_human_readable.html_safe %> <a href="/auth/twitter" class="btn btn-primary">Try Again</a>
+<% initialize_show_try_again %>
+
+<div class="container">
+	<div class="alert alert-error alert-results">
+		<%= @error_human_readable.html_safe %>
+		<% if @show_try_again %>
+		 	<a href="/auth/twitter" class="btn btn-primary">Try Again</a>
+		<% end %>
+		<a href="#" class="close" data-dismiss="alert">&times;</a>
 	</div>
 </div>
