@@ -1,2 +1,0 @@
-Design Decisions noted for posterity
-*ATP 3/29/14 - In switching the twitter data to load asynchronously, looked into doing oauth async as well - but oauth by definition involves going to the provider website: http://stackoverflow.com/questions/12162807/omniauth-login-without-refreshing-the-page

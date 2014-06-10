@@ -53,6 +53,11 @@ class SessionsController < ApplicationController
 			end
 		else 
 			lujack_user_up_to_date = false
+			if not @is_user_on_own_page #you're logged in, but you're querying a user that hasn't created their profile yet
+				@error_human_readable = "That user hasn't created their profile yet."
+				@show_try_again = false
+				render 'error' and return
+			end
 		end
 		
 		@use_information_from_database = lujack_user_up_to_date or not @is_user_on_own_page	
@@ -141,8 +146,12 @@ class SessionsController < ApplicationController
 
   	def show
 		@username = params[:username]
+  		if @username.nil? #this is for the case where their session has already been created, but they click sign in or profile again
+			find_user_authentication_information
+			@username = @authenticated_username
+		end
 		session[:username] = @username
-  	end
+	end
   
   	#####
   	# Controller helper functions
@@ -160,17 +169,17 @@ class SessionsController < ApplicationController
   	def find_user_authentication_information
   		if session['access_token'] && session['access_token_secret']
 	      		@user = client.user(include_entities: true)
-			@username = @user.screen_name
+			@authenticated_username = @user.screen_name
       			@user_is_authenticated = true
-			if @username == params[:username]
+			if @authenticated_username == params[:username]
 				@is_user_on_own_page = true
 			else
 				@is_user_on_own_page = false
 			end
 		else
-			@username = params[:username]
 			@user_is_authenticated = false
 			@is_user_on_own_page = false
 		end
+		@username = params[:username]
   	end
 end
