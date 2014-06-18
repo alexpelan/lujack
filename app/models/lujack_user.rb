@@ -1,103 +1,119 @@
 class LujackUser < ActiveRecord::Base
-  attr_accessible :twitter_username
-  attr_accessor :error_occurred, :client, :application_reserve_client
-  has_many :twitter_users
-  has_many :tweets
+  	
+	#####
+	# Class Members
+	#####
+	attr_accessible :twitter_username
+  	attr_accessor :error_occurred, :client, :application_reserve_client
+  	
+	#####
+	# Associations
+	#####
+	has_many :twitter_users
+  	has_many :tweets
   
-  #get number_of_tweets favorites
-  #save to database
-  #return true if there aren't any tweets left  
-  def incremental_load_tweets(number_of_tweets)
-  	favorites = []
-    	favorite_users = Array.new
-   	loaded_all_tweets = false
-    	self.error_occurred = false
-    	if not self.max_id.nil?
-	 #	options = {:count => number_of_tweets, :max_id => self.max_id}
-	 	options = {:count => 40, :max_id => self.max_id} #TODO: delete me later
-	 else
- 	# 	options = {:count => number_of_tweets}
- 		 options = {:count => 40} #TODO: delete me later
- 	end
+	#####
+	# Validations 
+	#####
+	validates :twitter_username, presence: true
+
+	#####
+	# Methods
+	#####
+
+  	#get number_of_tweets favorites
+  	#save to database
+  	#return true if there aren't any tweets left  
+  	def incremental_load_tweets(number_of_tweets)
+  		favorites = []
+    		favorite_users = Array.new
+   		loaded_all_tweets = false
+    		self.error_occurred = false
+    		if not self.max_id.nil?
+	 		options = {:count => number_of_tweets, :max_id => self.max_id}
+	 	else
+ 		 	options = {:count => number_of_tweets}
+ 		end
  		
  		 
- 	begin
-		favorites = self.client.favorites(self.twitter_username, options)
-	rescue Twitter::Error::TooManyRequests => error
-		begin
-			favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
+ 		begin
+			favorites = self.client.favorites(self.twitter_username, options).take(number_of_tweets.to_i)
+			logger.debug("count = " + favorites.count.to_s)
 		rescue Twitter::Error::TooManyRequests => error
-			self.error_occurred = true
+			begin
+				favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
+			rescue Twitter::Error::TooManyRequests => error
+				self.error_occurred = true
+			end
 		end
-	end
 		
-	if favorites.count == 0
-		loaded_all_tweets = true
-	else
+		if favorites.count == 0
+			loaded_all_tweets = true
+		else
+		
+			if not favorites.last.nil?
+				if self.max_id == favorites.last.id
+					loaded_all_tweets = true
+				end
+
+			end
+		end
 		
 		if not favorites.last.nil?
-			if self.max_id == favorites.last.id
-				loaded_all_tweets = true
-			end
+			self.max_id = favorites.last.id
+		end
+		
+		save_tweets(favorites)
+		return loaded_all_tweets
+	end
+	
+	def save_tweets(tweets)
+	
+		tweets.each do |tweet|
+			tweet_database_object = self.tweets.build
+			tweet_database_object.username = tweet.user.screen_name.to_s()
+			tweet_database_object.tweet_id = tweet.id.to_s
+			tweet_database_object.save
+		end
+	
+	end
 
+	def save_favorite_users(favorite_users)
+		favorite_users.each do |favorite_user|
+			favorite_user.save
 		end
 	end
-		
-	if not favorites.last.nil?
-		self.max_id = favorites.last.id
-	end
-		
-	save_tweets(favorites)
-	return loaded_all_tweets
-end
-	
-def save_tweets(tweets)
-	
-	tweets.each do |tweet|
-		tweet_database_object = self.tweets.build
-		tweet_database_object.username = tweet.user.screen_name.to_s()
-		tweet_database_object.tweet_id = tweet.id.to_s
-		tweet_database_object.save
-	end
-	
-end
 
-def save_favorite_users(favorite_users)
-	favorite_users.each do |favorite_user|
-		favorite_user.save
-	end
-end
-
-def destroy_tweets_and_twitter_users
-	tweets = Tweet.find_all_by_lujack_user_id(self.id)
-        tweets.each do |tweet|
-        	tweet.destroy
-        end
+	def destroy_tweets_and_twitter_users
+		tweets = Tweet.find_all_by_lujack_user_id(self.id)
+        	tweets.each do |tweet|
+        		tweet.destroy
+        	end
         
-	twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
-       	twitter_users.each do |twitter_user|
-        	twitter_user.destroy
-        end
+		twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
+       		twitter_users.each do |twitter_user|
+        		twitter_user.destroy
+        	end
 
-end
+	end
 
 		 
-def calculate_favorite_users
-  	self.error_occurred = false
-	favorites = []
-  	favorites = Tweet.find_all_by_lujack_user_id(self.id)
+	def calculate_favorite_users
+  		self.error_occurred = false
+		favorites = []
+  		favorites = Tweet.find_all_by_lujack_user_id(self.id)
  	
-	if favorites.count == 0
-		self.error_occurred = true
-		return nil
-	end 
+		if favorites.count == 0
+			self.error_occurred = true
+			return nil
+		end 
   	
-  	username_to_twitter_user_hash = Hash.new
+  		username_to_twitter_user_hash = Hash.new
   				
-  	favorites.each do |favorite|		
+  		favorites.each do |favorite|		
   		
-  		username = favorite.username
-  	
+  			username = favorite.username
+  		
 			if username_to_twitter_user_hash.key?(username)
 			
 				twitter_user = username_to_twitter_user_hash[username]
@@ -105,7 +121,7 @@ def calculate_favorite_users
 				random_number = Random.new.rand(0..1)
 				
 				if random_number > (0.25)
-						twitter_user.random_tweet_id = favorite.tweet_id.to_s
+					twitter_user.random_tweet_id = favorite.tweet_id.to_s
 				end
 				
 				twitter_user.favorite_count = twitter_user.favorite_count + 1
@@ -152,14 +168,14 @@ def calculate_favorite_users
 		return favorite_users
 	end
 	
-def sort_favorite_users(username_to_twitter_user)
+	def sort_favorite_users(username_to_twitter_user)
 		
 		#sort the twitter_user objects by favorite_count
 		favorite_users = username_to_twitter_user.values
 		favorite_users.sort! {|a,b| a.favorite_count <=> b.favorite_count}.reverse!
 		
 		return favorite_users
-end
+	end
  
  	def is_up_to_date?
  
@@ -171,30 +187,21 @@ end
  		
  	end	
   
-  def clear_previous_twitter_users
-  	twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
+  	def clear_previous_twitter_users
+  		twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
   	
-  	twitter_users.each do |twitter_user|
-  		twitter_user.destroy
-  	end
+  		twitter_users.each do |twitter_user|
+  			twitter_user.destroy
+  		end
   
-  end	
+  	end	
   
-  def save_to_database
- 
- 		self.favorite_users.each do |twitter_user|
- 			twitter_user.save
- 		end
-  	self.save
- 	
-  end
+  	def craft_tweet_string(favorite_users)
   
-  def craft_tweet_string(favorite_users)
-  
-  	#you don't just write a tweet, you CRAFT a tweet
+  		#you don't just write a tweet, you CRAFT a tweet
 		tweet_string = "My favorite tweeters are @" + favorite_users[0].username  + ", @" + favorite_users[1].username + ", and @" + favorite_users[2].username + ". Check out yours at myfavoritetweeters.herokuapp.com"
 		return tweet_string
  
-  end
+  	end
   
 end
