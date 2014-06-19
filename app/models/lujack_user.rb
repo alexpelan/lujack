@@ -37,8 +37,7 @@ class LujackUser < ActiveRecord::Base
  		
  		 
  		begin
-			favorites = self.client.favorites(self.twitter_username, options).take(number_of_tweets.to_i)
-			logger.debug("count = " + favorites.count.to_s)
+			favorites = self.client.favorites(self.twitter_username, options)
 		rescue Twitter::Error::TooManyRequests => error
 			begin
 				favorites = self.application_reserve_client.favorites(self.twitter_username, options)	
@@ -186,15 +185,6 @@ class LujackUser < ActiveRecord::Base
  		end
  		
  	end	
-  
-  	def clear_previous_twitter_users
-  		twitter_users = TwitterUser.find_all_by_lujack_user_id(self.id)
-  	
-  		twitter_users.each do |twitter_user|
-  			twitter_user.destroy
-  		end
-  
-  	end	
   
   	def craft_tweet_string(favorite_users)
   

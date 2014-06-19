@@ -28,7 +28,11 @@ class SessionsController < ApplicationController
 	def tweet
 		if session['access_token'] && session['access_token_secret']
     			@user = client.user(include_entities: true)
+		else
+			@error_human_readable = "You're not authenticated to tweet that. Try signing in with Twitter again."
+			render 'error' and return
 		end
+
 		tweet = params[:tweet]
 		
 		begin

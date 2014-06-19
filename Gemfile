@@ -15,6 +15,10 @@ group :development do
 	gem 'quiet_assets', '~> 1.0.2'
 end
 
+group :test do
+	gem 'simplecov', :require => false
+end
+
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do

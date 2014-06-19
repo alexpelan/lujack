@@ -1,7 +1,8 @@
 require 'test_helper'
 
 class PagesControllerTest < ActionController::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+	test 'about should route to about' do
+		assert_routing "/about", controller: "pages", action: "about"
+	end	
+
 end
