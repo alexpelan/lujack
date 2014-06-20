@@ -24,3 +24,8 @@ tweet_5:
   lujack_user_id: 1
   username: jon_bois
   tweet_id: 474757479986110464
+tweet_6:
+  id: 6
+  lujack_user_id: 1
+  username: whereisfritz
+  tweet_id: 391190533286395904

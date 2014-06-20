@@ -133,7 +133,7 @@ class LujackUser < ActiveRecord::Base
 			end		
 		end
 		
-		favorite_users = sort_favorite_users(username_to_twitter_user_hash)
+		favorite_users = sort_favorite_users(username_to_twitter_user_hash.values)
 		self.favorite_users = find_random_tweets(favorite_users)
 		save_favorite_users(self.favorite_users)	
 	
@@ -146,6 +146,10 @@ class LujackUser < ActiveRecord::Base
 		#the top ten users get a sample tweet - we limit to ten to keep our oembed requests down (doing it for all tweets would go over our rate limit more often than not)
 		for i in 0..9 do
 		
+			if favorite_users[i].nil?
+				break
+			end		
+	
 			favorite_user = favorite_users[i]
 			username = favorite_user.username
 			tweet_id = favorite_user.random_tweet_id
@@ -167,10 +171,9 @@ class LujackUser < ActiveRecord::Base
 		return favorite_users
 	end
 	
-	def sort_favorite_users(username_to_twitter_user)
+	def sort_favorite_users(favorite_users)
 		
 		#sort the twitter_user objects by favorite_count
-		favorite_users = username_to_twitter_user.values
 		favorite_users.sort! {|a,b| a.favorite_count <=> b.favorite_count}.reverse!
 		
 		return favorite_users
