@@ -3,7 +3,7 @@ class SessionsController < ApplicationController
 	# Controller level exception handling
 	#####
 	rescue_from 'Twitter::Error::TooManyRequests' do |error|
-		@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
+		flash[:error_human_readable] = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
 		remove_lujack_user_from_database
 		render 'error' and return
 	end
@@ -26,10 +26,8 @@ class SessionsController < ApplicationController
   	end
 
 	def tweet
-		if session['access_token'] && session['access_token_secret']
-    			@user = client.user(include_entities: true)
-		else
-			@error_human_readable = "You're not authenticated to tweet that. Try signing in with Twitter again."
+		if not (session['access_token'] && session['access_token_secret'])
+			flash[:error_human_readable] = "You're not authenticated to tweet that. Try signing in with Twitter again."
 			render 'error' and return
 		end
 
@@ -38,7 +36,7 @@ class SessionsController < ApplicationController
 		begin
 			client.update(tweet)
 		rescue Twitter::Error::Forbidden
-			@error_human_readable = "That tweet couldn't be sent on account of its over 140-character-ness."
+			flash[:error_human_readable] = "That tweet couldn't be sent on account of its over 140-character-ness."
 			@show_try_again = false
 			render 'error' and return
 		end
@@ -58,7 +56,7 @@ class SessionsController < ApplicationController
 		else 
 			lujack_user_up_to_date = false
 			if not @is_user_on_own_page #you're logged in, but you're querying a user that hasn't created their profile yet
-				@error_human_readable = "That user hasn't created their profile yet."
+				flash[:error_human_readable] = "That user hasn't created their profile yet."
 				@show_try_again = false
 				render 'error' and return
 			end
@@ -106,7 +104,7 @@ class SessionsController < ApplicationController
 
 		if @lujack_user.error_occurred
 			
-			@error_human_readable = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
+			flash[:error_human_readable] = "Your username has made too many requests to twitter in a short time frame. Try waiting 15 minutes and trying again."
 			remove_lujack_user_from_database
 			render 'error' and return
 		end
@@ -134,7 +132,7 @@ class SessionsController < ApplicationController
 		
 		#various things can make @favorite_users null, including things I haven't been able to predict.
 		if @lujack_user.error_occurred
-			@error_human_readable = "Hmm...our brain got a little fried on that one."
+			flash[:error_human_readable] = "Hmm...our brain got a little fried on that one."
 			render 'error' and return
 		end
 		
@@ -160,7 +158,7 @@ class SessionsController < ApplicationController
 		begin
 			@lujack_user = 	LujackUser.find(session[:id])
 		rescue ActiveRecord::RecordNotFound
-			@error_human_readable = "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan"
+			flash[:error_human_readable] = "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan"
 			return false
 		end
 		return true

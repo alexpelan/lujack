@@ -43,7 +43,6 @@ class LujackUserTest < ActiveSupport::TestCase
 	test "ensure sort favorite users produces sorted out" do
 		lujack_user = LujackUser.find(1)
 		favorite_users = TwitterUser.find_all_by_lujack_user_id(1)
-		Rails.logger.info("inspectER = " + favorite_users.inspect)	
 		favorite_users = lujack_user.sort_favorite_users(favorite_users)
 		
 		for i in 0..favorite_users.count-2
@@ -53,7 +52,7 @@ class LujackUserTest < ActiveSupport::TestCase
 
 	test "find random tweets populates random tweet html" do
 		lujack_user = LujackUser.find(1)
-		lujack_user.client = client
+		lujack_user.client = test_client
 		favorite_users = TwitterUser.find_all_by_lujack_user_id(1)
 		
 		favorite_users = lujack_user.find_random_tweets(favorite_users)
@@ -64,7 +63,7 @@ class LujackUserTest < ActiveSupport::TestCase
 
 	test "calculate favorite users gives correct results" do
 		lujack_user = LujackUser.find(1)
-		lujack_user.client = client
+		lujack_user.client = test_client
 
 		#Delete all twitter users from the fixture, since we want to build them up again from the tweets
 		twitter_users = TwitterUser.find_all_by_lujack_user_id(1)

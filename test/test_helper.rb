@@ -17,7 +17,11 @@ class ActiveSupport::TestCase
 		OmniAuth.config.test_mode = true
 		OmniAuth.config.mock_auth[:twitter] = OmniAuth::AuthHash.new({
 			:provider => 'twitter',
-			:uid => '14293877'
+			:uid => '14293877',
+			:credentials => {
+				:token => 'mock token',
+				:secret => 'mock secret'
+			}
 		})
 		return OmniAuth.config.mock_auth[:twitter]
 	end
@@ -26,7 +30,7 @@ class ActiveSupport::TestCase
 		OmniAuth.config.test_mode = false
 	end
 
-	def client
+	def test_client
 	 	#use application only authentication
 		@client ||= Twitter::REST::Client.new do |config|
                 	config.consumer_key = ENV['CONSUMER_KEY']
