@@ -39,7 +39,43 @@ class SessionsControllerTest < ActionController::TestCase
 		get(:tweet, {:tweet => tweet})
 		assert_equal "That tweet couldn't be sent on account of its over 140-character-ness.", flash[:error_human_readable]
 	end
+
+	test "show should set session variable with username" do
+		@controller = SessionsController.new
+		get(:show, {:username => "alexpelan"})
 	
+		assert_equal "alexpelan", session[:username]	
+	end
+
+	test "find or create user should find an existing user" do
+		@controller = SessionsController.new
+		
+		get :find_or_create_user, :username => "alexpelan1", :format => "js"
+		lujack_user = LujackUser.find_by_twitter_username("alexpelan1")
+		assert_not_nil lujack_user
+	end
+
+	test "find or create user should create a user that isnt yet in the database" do
+		@controller = SessionsController.new
+		session["access_token"] = "abc"
+		session["access_token_secret"] = "123"
+
+		before = LujackUser.find_by_twitter_username("alexpelan")
+		get :find_or_create_user, :username => "alexpelan", :format => "js"
+		after = LujackUser.find_by_twitter_username("alexpelan")
+
+		assert_nil before
+		assert_not_nil after
+	end
+
+	test "find or create user should show error if user tries to query non existent other user" do
+		@controller = SessionsController.new
+
+		get :find_or_create_user, :username => "blargle", :format => "js"
+	
+		assert_equal "That user hasn't created their profile yet.", flash[:error_human_readable]
+	end
+
 	#test "rate limit error is properly raised and recovered form" do
 	#	assert_raise Twitter::Error::TooManyRequests do
 	#		force_rate_limit_error

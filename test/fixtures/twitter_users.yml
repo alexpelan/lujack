@@ -4,22 +4,26 @@ celebrityhottub:
   lujack_user_id: 1
   username: celebrityhottub
   random_tweet_id: 479260117494693888
+  random_tweet_html: Thisissomeclevertweet
   favorite_count: 2
 paulmyerberg:
   id: 2
   lujack_user_id: 1
   username: PaulMyerberg
   random_tweet_id: 479671222306111488
+  random_tweet_html: somethingaboutfootball
   favorite_count: 1
 edsbs:
   id: 3
   lujack_user_id: 1
   username: edsbs
-  random_tweet_id: 475357287586885632
+  random_tweet_id: 475357287586885632i
+  random_tweet_html: nachos
   favorite_count: 1
 jon_bois:
   id: 4
   lujack_user_id: 4
   username: jon_bois
   random_tweet_id: 474757479986110464
+  random_tweet_html: lebronjames
   favorite_count: 1
