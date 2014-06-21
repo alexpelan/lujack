@@ -72,9 +72,72 @@ class SessionsControllerTest < ActionController::TestCase
 		@controller = SessionsController.new
 
 		get :find_or_create_user, :username => "blargle", :format => "js"
-	
+		
 		assert_equal "That user hasn't created their profile yet.", flash[:error_human_readable]
 	end
+
+	test "incremental load tweets should load requested number of tweets" do
+		@controller = SessionsController.new
+		session["access_token"] = "abc"
+		session["access_token_secret"] = "123"		
+		session[:total_tweets] = 1600
+	
+		get :find_or_create_user, :username => "alexpelan", :format => "js"
+		get :incremental_load_tweets, :number_of_tweets => "200", :format => "js"
+
+		tweets = Tweet.find_all_by_lujack_user_id(session[:id])
+
+		#database stuff actually happens
+		assert_in_delta(200, tweets.count, 1)
+
+		#session state stored properly
+		assert_equal 200, session[:tweets_loaded]
+	end
+
+	test "incremental load tweets should know when it is finished loading tweets" do
+		@controller = SessionsController.new
+		session["access_token"] = "abc"
+		session["access_token_secret"] = "123"
+
+		get :find_or_create_user, :username => "alexpelan", :format => "js"
+		session[:total_tweets] = 150
+		get :incremental_load_tweets, :number_of_tweets => "200", :format => "js"
+
+		assert_equal true, assigns["done"]
+	
+	end
+
+	test "finalize should show error message if id in session isnt in db" do
+		@controller = SessionsController.new
+		session[:id] = 85
+		
+		get :finalize, :placeholder => "placeholder", :format => "js"
+
+		assert_equal "Uh, that's not good. Try to sign in again, and hopefully that will work. If not, angrily tweet @alexpelan", flash[:error_human_readable]
+ 
+	end
+	
+	test "finalize should render results partial" do
+		@controller = SessionsController.new
+		session[:id] = 1
+                session[:has_more_than_2000_tweets] = false
+		#Delete all twitter users from the fixture, since we want to build them up again from the tweets
+                twitter_users = TwitterUser.find_all_by_lujack_user_id(1)
+                twitter_users.each do |twitter_user|
+                        twitter_user.destroy
+                end
+
+		get :finalize, :placeholder => "placeholder", :format => "js"
+
+		#twitter users should be created
+		twitter_users = TwitterUser.find_all_by_lujack_user_id(1)
+		assert_operator twitter_users.count, :>, 0
+
+		#results partial should be rendered. This element (amongst others)should be on the page
+		#Rails assert_select doesnt like AJAX get responses, so instead we do a regex check against @response.body
+		assert_match /<ul class=\\\"favorite_user_list\\\">/, @response.body
+	end
+	
 
 	#test "rate limit error is properly raised and recovered form" do
 	#	assert_raise Twitter::Error::TooManyRequests do
