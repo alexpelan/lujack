@@ -1,3 +1,5 @@
+6/22/2014 - Lujack is up and running at http://myfavoritetweeters.herokuapp.com. Version 0.1 has been released!
+
 == Lujack
 Lujack is a web application meant to build a feature for Twitter/Favstar.Fm that I always wished had existed: which users have I favorited the most?
 
