@@ -36,7 +36,7 @@ body{
 }
 
 .favorite_user_list ul{
-	list-style-type: none
+	list-style-type: none;
 	width: 500px;
 	margin: 0;	
 }
