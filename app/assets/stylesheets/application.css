@@ -64,6 +64,11 @@ h3 {
 	display: none;	
 }
 
+.alert-sign-in{
+	margin: 0 auto;
+	width: 405px;
+}
+
 .alert-results{
 	margin: 0 auto;
 	width: 700px;
