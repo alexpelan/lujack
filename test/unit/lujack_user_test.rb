@@ -11,9 +11,10 @@ class LujackUserTest < ActiveSupport::TestCase
 		second_user = TwitterUser.create(username: "alex")
 		third_user = TwitterUser.create(username: "cnn")
 		lujack_user = LujackUser.new
+		lujack_user.twitter_username = "alexpelan"
 		favorite_users = [first_user, second_user, third_user]
 		tweet_string = lujack_user.craft_tweet_string(favorite_users)
-		assert_equal(tweet_string, "My favorite tweeters are @blargle, @alex, and @cnn. Check out yours at myfavoritetweeters.herokuapp.com")
+		assert_equal(tweet_string, "My favorite tweeters are @blargle, @alex, and @cnn: myfavoritetweeters.herokuapp.com/profile/alexpelan")
 	end
 
 	test "is up to date should return different values for new and old lujack users" do

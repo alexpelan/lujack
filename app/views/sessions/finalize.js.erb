@@ -5,6 +5,7 @@ function fadeInResults(){
 	wireUpResultsEvents();
 	<% if not @is_user_on_own_page %>
 		$("#tweet_form").hide();
+		$("#alert").width(405);
 		$("#alert").html("<%= escape_javascript(render(:partial => 'layouts/sign_in_with_twitter')) %>");
 	<% end %>
 	<% if @has_more_than_2000_tweets %>
