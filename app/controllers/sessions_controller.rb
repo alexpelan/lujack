@@ -77,7 +77,7 @@ class SessionsController < ApplicationController
 	
 		if @user
                         total_tweets = @user.favorites_count
-                end
+		end
 	
 		if total_tweets > 2000 #for rate limiting purposes, we'll only load their last 2000
 			total_tweets = 2000
